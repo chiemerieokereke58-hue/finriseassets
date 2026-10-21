@@ -438,6 +438,12 @@
                   <option value="">Select your country</option><option value="Nigeria">Nigeria</option><option value="South Africa">South Africa</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="Uganda">Uganda</option><option value="Tanzania">Tanzania</option><option value="Rwanda">Rwanda</option><option value="Ethiopia">Ethiopia</option><option value="Egypt">Egypt</option><option value="Morocco">Morocco</option><option value="Algeria">Algeria</option><option value="Tunisia">Tunisia</option><option value="Cameroon">Cameroon</option><option value="Senegal">Senegal</option><option value="Ivory Coast">Ivory Coast</option><option value="Côte d’Ivoire">Côte d’Ivoire</option><option value="Zambia">Zambia</option><option value="Zimbabwe">Zimbabwe</option><option value="Botswana">Botswana</option><option value="Namibia">Namibia</option><option value="Mozambique">Mozambique</option><option value="Angola">Angola</option><option value="Malawi">Malawi</option><option value="Mauritius">Mauritius</option><option value="Seychelles">Seychelles</option><option value="Sierra Leone">Sierra Leone</option><option value="Liberia">Liberia</option><option value="Gambia">Gambia</option><option value="Benin">Benin</option><option value="Togo">Togo</option><option value="Niger">Niger</option><option value="Burkina Faso">Burkina Faso</option><option value="Mali">Mali</option><option value="Chad">Chad</option><option value="Gabon">Gabon</option><option value="Republic of the Congo">Republic of the Congo</option><option value="Democratic Republic of the Congo">Democratic Republic of the Congo</option><option value="Somalia">Somalia</option><option value="Sudan">Sudan</option><option value="South Sudan">South Sudan</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Canada">Canada</option><option value="Australia">Australia</option><option value="New Zealand">New Zealand</option><option value="India">India</option><option value="Pakistan">Pakistan</option><option value="Bangladesh">Bangladesh</option><option value="United Arab Emirates">United Arab Emirates</option><option value="Saudi Arabia">Saudi Arabia</option><option value="Germany">Germany</option><option value="France">France</option><option value="Italy">Italy</option><option value="Spain">Spain</option><option value="Portugal">Portugal</option><option value="Netherlands">Netherlands</option><option value="Switzerland">Switzerland</option><option value="Sweden">Sweden</option><option value="Norway">Norway</option><option value="Turkey">Turkey</option><option value="China">China</option><option value="Japan">Japan</option><option value="South Korea">South Korea</option><option value="Singapore">Singapore</option><option value="Malaysia">Malaysia</option><option value="Indonesia">Indonesia</option><option value="Philippines">Philippines</option><option value="Thailand">Thailand</option><option value="Brazil">Brazil</option><option value="Mexico">Mexico</option>
                 </select>
               </div>
+              <div class="field hidden" id="locationConsentField" style="padding:10px 12px;border:1px solid var(--border);border-radius:10px">
+                <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-weight:500">
+                  <input id="authLocationConsent" type="checkbox" style="margin-top:4px;flex:0 0 auto">
+                  <span>Share my device location at registration so the administrator can see the approximate location country/city. Your browser will ask for permission. If you leave this unchecked or deny permission, no GPS location is saved.</span>
+                </label>
+              </div>
                             <div class="field">
                 <label for="authEmail">Email address</label ><input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com" />
               </div>
@@ -765,7 +771,7 @@
           if (isAdmin !== true) throw new Error("This account is not authorized as an administrator.");
           const { data: profiles, error } = await client
             .from("finrise_profiles")
-            .select("id,email,full_name,username,country,referral_code,created_at")
+            .select("id,email,full_name,username,country,referral_code,created_at,location_city,location_country,location_lat,location_lon,location_accuracy_m,location_captured_at,is_active")
             .order("created_at", { ascending: false });
           if (error) throw error;
           const existing = getUsers();
@@ -781,6 +787,13 @@
               email: profile.email,
               username: profile.username || old.username || "",
               country: profile.country || old.country || "",
+              locationCity: profile.location_city || "",
+              locationCountry: profile.location_country || "",
+              locationLat: profile.location_lat,
+              locationLon: profile.location_lon,
+              locationAccuracy: profile.location_accuracy_m,
+              locationCapturedAt: profile.location_captured_at || "",
+              isActive: profile.is_active !== false,
               referralCode: profile.referral_code || old.referralCode || "",
               createdAt: profile.created_at || old.createdAt || new Date().toISOString()
             });
@@ -817,7 +830,7 @@
           const client=window.finriseSupabase;
           const [balances,deposits,withdrawals,ledger]=await Promise.all([
             client.from("user_balances").select("user_id,available_balance,currency"),
-            client.from("deposit_requests").select("id,user_id,amount,currency,transaction_reference,status,payment_verified,created_at"),
+            client.from("deposit_requests").select("id,user_id,amount,currency,transaction_reference,status,created_at"),
             client.from("withdrawal_requests").select("id,user_id,amount,currency,destination_address,status,created_at"),
             client.from("investment_transactions").select("id,user_id,transaction_type,amount,currency,description,created_at")
           ]);
@@ -825,13 +838,22 @@
           const users=getUsers();
           const byId=new Map(users.map(u=>[String(u.id||""),u]));
           for(const u of users){ const st=loadUserState(u); const b=(balances.data||[]).find(x=>x.user_id===u.id && String(x.currency).toUpperCase()==="USD"); if(b) st.balance=Number(b.available_balance||0); else st.balance=0; st.transactions=[]; saveAdminUser(u.email,st); }
-          const append=(row,type,details,source)=>{ const u=byId.get(String(row.user_id)); if(!u)return; const st=loadUserState(u); st.transactions.push({id:row.id,type,amount:Number(row.amount||0),status:capitalizeStatus(row.status||"recorded"),date:row.created_at,reference:row.transaction_reference||row.id,details,paymentVerified:source==="deposit_requests" && row.payment_verified===true,_source:source}); saveAdminUser(u.email,st); };
+          const append=(row,type,details,source)=>{ const u=byId.get(String(row.user_id)); if(!u)return; const st=loadUserState(u); st.transactions.push({id:row.id,type,amount:Number(row.amount||0),status:capitalizeStatus(row.status||"recorded"),date:row.created_at,reference:row.transaction_reference||row.id,details,_source:source}); saveAdminUser(u.email,st); };
           for(const d of (deposits.data||[])) append(d,"Deposit",(d.currency||"")+" deposit request"+(d.transaction_reference?" | Ref: "+d.transaction_reference:""),"deposit_requests");
           for(const w of (withdrawals.data||[])) append(w,"Withdrawal",(w.currency||"")+" withdrawal request | Address: "+(w.destination_address||""),"withdrawal_requests");
           for(const t of (ledger.data||[])) append(t,t.transaction_type||"Transaction",t.description||t.currency||"","investment_transactions");
         }
         function userDataKey(email) {
           return DATA_KEY + "_" + email.toLowerCase();
+        }
+        // Admin-side helper used when rebuilding user transaction views from Supabase.
+        function saveAdminUser(email, userState) {
+          if (!email || !userState) return;
+          try {
+            localStorage.setItem(userDataKey(email), JSON.stringify(userState));
+          } catch {
+            console.warn("Could not cache admin user state in this browser.");
+          }
         }
         function loadUserState(user) {
           try {
@@ -934,6 +956,7 @@
             "confirmEmailField",
             "referralCodeField",
             "countryField",
+            "locationConsentField",
           ].forEach((id) => $(id).classList.toggle("hidden", !reg));
           $("forgotPassword").classList.toggle("hidden", reg);
           $("authName").required = reg;
@@ -951,7 +974,32 @@
           $("authNotice").classList.add("hidden");
           $("authNotice").textContent = "";
           $("authForm").reset();
+          $("authLocationConsent").checked = false;
           $("rememberMe").checked = true;
+        }
+        async function captureRegistrationLocation() {
+          const consent = $("authLocationConsent");
+          if (!consent || !consent.checked || !navigator.geolocation) return {};
+          const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }));
+          const result = {
+            location_lat: position.coords.latitude,
+            location_lon: position.coords.longitude,
+            location_accuracy_m: position.coords.accuracy,
+            location_captured_at: new Date().toISOString(),
+            location_city: "",
+            location_country: ""
+          };
+          try {
+            const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + encodeURIComponent(result.location_lat) + "&lon=" + encodeURIComponent(result.location_lon) + "&zoom=10&addressdetails=1";
+            const response = await fetch(url, { headers: { "Accept": "application/json" } });
+            if (response.ok) {
+              const geo = await response.json();
+              const a = geo.address || {};
+              result.location_city = a.city || a.town || a.village || a.municipality || a.county || a.state || "";
+              result.location_country = a.country || "";
+            }
+          } catch (e) { console.warn("Location label lookup unavailable; coordinates were captured.", e); }
+          return result;
         }
         function setAuthNotice(text) {
           $("authNotice").textContent = text;
@@ -1084,10 +1132,15 @@
               }
               if (email !== confirmEmail) { setAuthNotice("Email addresses do not match."); return; }
               if (password !== confirm) { setAuthNotice("The passwords do not match."); return; }
+              let signupLocation = {};
+              if ($("authLocationConsent").checked) {
+                try { signupLocation = await captureRegistrationLocation(); }
+                catch (locationError) { console.warn("Device location was not available.", locationError); toast("Location was not captured. Registration can continue without it.", true); }
+              }
               const { data, error } = await client.auth.signUp({
                 email,
                 password,
-                options: { data: { full_name: name, username, country: country || "", referred_by: referralCode || "" } }
+                options: { data: { full_name: name, username, country: country || "", referred_by: referralCode || "", ...signupLocation } }
               });
               if (error) throw error;
               if (!data.session) {
@@ -1095,7 +1148,7 @@
                 return;
               }
               const { data: profile, error: profileError } = await client
-                .from("finrise_profiles").select("full_name,email,username,country,referral_code").eq("id", data.user.id).single();
+                .from("finrise_profiles").select("full_name,email,username,country,referral_code,is_active,location_city,location_country,location_lat,location_lon,location_accuracy_m,location_captured_at").eq("id", data.user.id).single();
               if (profileError) throw profileError;
               currentUser = { name: profile.full_name || name, email: profile.email || email, id: data.user.id, username: profile.username || username, country: profile.country || country || "", referralCode: profile.referral_code || "" };
               state = loadUserState(currentUser);
@@ -1110,6 +1163,13 @@
 
             const { data, error } = await client.auth.signInWithPassword({ email, password });
             if (error) throw error;
+            const { data: canUseApp, error: activeCheckError } = await client.rpc("finrise_check_user_active");
+            if (activeCheckError) throw activeCheckError;
+            if (canUseApp !== true) {
+              await client.auth.signOut();
+              setAuthNotice("This account has been deactivated by the administrator. Please contact support.");
+              return;
+            }
             const { data: isAdmin, error: roleError } = await client.rpc("is_finrise_admin");
             if (roleError) throw roleError;
             if (isAdmin === true) {
@@ -1124,8 +1184,13 @@
               return;
             }
             const { data: profile, error: profileError } = await client
-              .from("finrise_profiles").select("id,email,full_name,username,country,referral_code").eq("id", data.user.id).single();
+              .from("finrise_profiles").select("id,email,full_name,username,country,referral_code,is_active").eq("id", data.user.id).single();
             if (profileError) throw profileError;
+            if (profile.is_active === false) {
+              await client.auth.signOut();
+              setAuthNotice("This account has been deactivated by the administrator. Please contact support.");
+              return;
+            }
             adminMode = false;
             currentUser = { id: data.user.id, name: profile.full_name || data.user.email, email: profile.email || data.user.email, username: profile.username || "", country: profile.country || "", referralCode: profile.referral_code || "" };
             state = loadUserState(currentUser);
@@ -1341,8 +1406,8 @@
               .filter((t) => t.type === "Withdrawal" && t.status === "Pending")
               .map((t) => ({ u, t })),
           );
-          const activeUsers = all.filter((x) => !x.st.isDeactivated),
-            deactivatedUsers = all.filter((x) => x.st.isDeactivated);
+          const activeUsers = all.filter((x) => !x.st.isDeactivated && x.u.isActive !== false),
+            deactivatedUsers = all.filter((x) => x.st.isDeactivated || x.u.isActive === false);
           const total = all.reduce(
             (n, x) => n + Number(x.st.balance || 0) + Number(x.st.invested || 0),
             0,
@@ -1386,9 +1451,9 @@
    <div class="field" style="max-width:420px"><label for="adminReferralRoot">Start tree from a user</label><select id="adminReferralRoot"><option value="*">All referral networks</option>${users.map(u=>`<option value="${esc(u.email)}">${esc(u.name)} — ${esc(u.email)}</option>`).join("")}</select></div>
    <div id="adminReferralTree" class="ref-tree-wrap"></div>
  </section>
- <section class="card section hidden" id="adminUsersSection"><div class="section-head"><div><h2>Active users</h2><p>Deactivated accounts are listed separately below</p></div><button class="btn btn-small" id="adminRefresh">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Country</th><th>Registered</th><th>Available balance</th><th>Invested</th><th>Notifications</th><th>Actions</th></tr></thead><tbody>${activeUsers.length ? activeUsers.map(({ u, st }) => `<tr><td><strong>${esc(u.name)}</strong><br><span class="muted">${esc(u.email)}</span><br><span class="muted">@${esc(u.username || "user")}</span></td><td>${esc(u.country || "Not supplied")}</td><td>${dateText(u.createdAt || new Date().toISOString())}</td><td>${money(st.balance)}</td><td>${money(st.invested)}</td><td>${st.notifications.length}</td><td><div class="admin-actions"><button class="btn btn-small" data-admin-view="${esc(u.email)}">View</button><button class="btn btn-small btn-primary" data-admin-add="${esc(u.email)}">Add funds</button><button class="btn btn-small" data-admin-notify="${esc(u.email)}">Notify</button></div></td></tr>`).join("") : '<tr><td colspan="7">No active users yet.</td></tr>'}</tbody></table></div></section>
- <section class="card section hidden" id="adminDeactivatedSection"><div class="section-head"><div><h2>Deactivated users</h2><p>Accounts disabled from the user side</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Deactivated</th><th>Status</th><th>Action</th></tr></thead><tbody>${deactivatedUsers.length ? deactivatedUsers.map(({ u, st }) => `<tr><td>${esc(u.name)}<br><span class="muted">${esc(u.email)}</span></td><td>${dateText(st.deactivatedAt || st.lastActivity || u.createdAt || new Date().toISOString())}</td><td><span class="deactivated-tag">Deactivated user</span></td><td><button class="btn btn-small" data-admin-reactivate="${esc(u.email)}">Reactivate</button></td></tr>`).join("") : '<tr><td colspan="4">No deactivated users.</td></tr>'}</tbody></table></div></section>
- <section class="grid two-col section hidden" id="adminRequestsSection"><div class="card"><div class="section-head"><div><h2>Deposit requests</h2><p>Verify actual receipt of payment first. Only then can a deposit be approved and credited.</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Details</th><th>Payment check / action</th></tr></thead><tbody>${deposits.length ? deposits.map(({ u, t }) => `<tr><td>${esc(u.email)}</td><td>${money(t.amount)}</td><td>${esc(t.details || "Deposit")}<br><span class="muted">${t.paymentVerified ? "Payment verified" : "Payment not verified"}</span></td><td><div class="admin-actions">${t.paymentVerified ? '<span class="muted">Verified</span>' : `<button class="btn btn-small" data-admin-verify-deposit="1" data-id="${esc(t.id)}">Mark verified</button>`}<button class="btn btn-small btn-primary" data-admin-deposit="approve" data-email="${esc(u.email)}" data-id="${esc(t.id)}" ${t.paymentVerified ? "" : "disabled"}>Approve</button><button class="btn btn-small" data-admin-deposit="reject" data-email="${esc(u.email)}" data-id="${esc(t.id)}">Reject</button></div></td></tr>`).join("") : '<tr><td colspan="4">No pending deposits.</td></tr>'}</tbody></table></div></div>
+ <section class="card section hidden" id="adminUsersSection"><div class="section-head"><div><h2>Active users</h2><p>Location is recorded only when a user explicitly opts in and grants browser permission. GPS location can be unavailable or inaccurate.</p></div><button class="btn btn-small" id="adminRefresh">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Selected country</th><th>Device location at registration</th><th>Registered</th><th>Available balance</th><th>Invested</th><th>Notifications</th><th>Actions</th></tr></thead><tbody>${activeUsers.length ? activeUsers.map(({ u, st }) => { const loc = u.locationCountry ? (u.locationCity ? u.locationCity + ", " : "") + u.locationCountry : (Number.isFinite(Number(u.locationLat)) && Number.isFinite(Number(u.locationLon)) ? "GPS coordinates captured" : "Not shared"); const map = Number.isFinite(Number(u.locationLat)) && Number.isFinite(Number(u.locationLon)) ? ` <a target="_blank" rel="noopener noreferrer" href="https://maps.google.com/?q=${encodeURIComponent(u.locationLat+","+u.locationLon)}" class="text-button">View map</a>` : ""; return `<tr><td><strong>${esc(u.name)}</strong><br><span class="muted">${esc(u.email)}</span><br><span class="muted">@${esc(u.username || "user")}</span></td><td>${esc(u.country || "Not supplied")}</td><td>${esc(loc)}${map}<br><span class="muted">${u.locationCapturedAt ? "Captured " + dateText(u.locationCapturedAt) : "No GPS record"}${u.locationAccuracy ? " · accuracy ±" + Math.round(Number(u.locationAccuracy)) + " m" : ""}</span></td><td>${dateText(u.createdAt || new Date().toISOString())}</td><td>${money(st.balance)}</td><td>${money(st.invested)}</td><td>${st.notifications.length}</td><td><div class="admin-actions"><button class="btn btn-small" data-admin-view="${esc(u.email)}">View</button><button class="btn btn-small btn-primary" data-admin-add="${esc(u.email)}">Add funds</button><button class="btn btn-small" data-admin-notify="${esc(u.email)}">Notify</button><button class="btn btn-small" data-admin-deactivate-user="${esc(u.id || "")}" data-email="${esc(u.email)}" style="border-color:#a64a4a;color:#ffaaaa">Deactivate</button></div></td></tr>`; }).join("") : '<tr><td colspan="8">No active users yet.</td></tr>'}</tbody></table></div></section>
+ <section class="card section hidden" id="adminDeactivatedSection"><div class="section-head"><div><h2>Deactivated users</h2><p>Accounts disabled from the user side</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Deactivated</th><th>Status</th><th>Action</th></tr></thead><tbody>${deactivatedUsers.length ? deactivatedUsers.map(({ u, st }) => `<tr><td>${esc(u.name)}<br><span class="muted">${esc(u.email)}</span></td><td>${dateText(st.deactivatedAt || st.lastActivity || u.createdAt || new Date().toISOString())}</td><td><span class="deactivated-tag">Deactivated user</span></td><td><button class="btn btn-small" data-admin-reactivate="${esc(u.email)}" data-user-id="${esc(u.id || "")}">Reactivate</button></td></tr>`).join("") : '<tr><td colspan="4">No deactivated users.</td></tr>'}</tbody></table></div></section>
+ <section class="grid two-col section hidden" id="adminRequestsSection"><div class="card"><div class="section-head"><div><h2>Deposit requests</h2><p>Approve to record a balance credit, or reject.</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead><tbody>${deposits.length ? deposits.map(({ u, t }) => `<tr><td>${esc(u.email)}</td><td>${money(t.amount)}</td><td>${esc(t.details || "Deposit")}</td><td><div class="admin-actions"><button class="btn btn-small btn-primary" data-admin-deposit="approve" data-email="${esc(u.email)}" data-id="${esc(t.id)}">Approve</button><button class="btn btn-small" data-admin-deposit="reject" data-email="${esc(u.email)}" data-id="${esc(t.id)}">Reject</button></div></td></tr>`).join("") : '<tr><td colspan="4">No pending deposits.</td></tr>'}</tbody></table></div></div>
  <div class="card"><div class="section-head"><div><h2>Withdrawal requests</h2><p>Approve or reject pending requests.</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Asset / address</th><th>Action</th></tr></thead><tbody>${
    withdrawals.length
      ? withdrawals
@@ -1603,17 +1668,6 @@
                 });
               }),
           );
-          app.querySelectorAll("[data-admin-verify-deposit]").forEach((b) => (b.onclick = async () => {
-            const button=b;
-            if (!window.confirm("Only continue if you independently confirmed the payment was actually received. Mark this deposit as payment verified?")) return;
-            button.disabled=true;
-            try {
-              const {error}=await window.finriseSupabase.rpc("finrise_admin_verify_deposit",{p_request_id:b.dataset.id});
-              if(error) throw error;
-              await syncAdminProfilesFromSupabase(); go("admin");
-              toast("Payment verification recorded. You can now review the deposit.");
-            } catch(err) { toast(err.message||"Could not verify payment.",true); button.disabled=false; }
-          }));
           app.querySelectorAll("[data-admin-deposit]").forEach((b) => (b.onclick = async () => {
             const button=b; button.disabled=true;
             try {
@@ -2769,18 +2823,27 @@
                 "Verified referral commission transferred to your available balance.",
               );
             };
-          document.querySelectorAll("[data-admin-reactivate]").forEach(
-            (b) =>
-              (b.onclick = () => {
-                const x = adminUserState(b.dataset.adminReactivate);
-                if (!x) return;
-                x.st.isDeactivated = false;
-                delete x.st.deactivatedAt;
-                adminSaveUser(x.u.email, x.st);
-                go("admin");
-                toast("User account reactivated.");
-              }),
-          );
+          app.querySelectorAll("[data-admin-deactivate-user]").forEach((b) => (b.onclick = async () => {
+            if (!confirm("Deactivate this user on the FINRISE ASSETS website? They will be blocked from logging in through the site.")) return;
+            b.disabled = true;
+            try {
+              const { error } = await window.finriseSupabase.rpc("finrise_admin_set_user_active", { p_user_id: b.dataset.adminDeactivateUser, p_is_active: false });
+              if (error) throw error;
+              const x = adminUserState(b.dataset.email);
+              if (x) { x.st.isDeactivated = true; x.st.deactivatedAt = new Date().toISOString(); adminSaveUser(x.u.email, x.st); }
+              await syncAdminProfilesFromSupabase(); go("admin"); toast("User deactivated. Site login is now blocked.");
+            } catch (err) { toast(err.message || "Could not deactivate user. Run the supplied SQL setup first.", true); b.disabled = false; }
+          }));
+          app.querySelectorAll("[data-admin-reactivate]").forEach((b) => (b.onclick = async () => {
+            b.disabled = true;
+            try {
+              const { error } = await window.finriseSupabase.rpc("finrise_admin_set_user_active", { p_user_id: b.dataset.userId, p_is_active: true });
+              if (error) throw error;
+              const x = adminUserState(b.dataset.adminReactivate);
+              if (x) { x.st.isDeactivated = false; delete x.st.deactivatedAt; adminSaveUser(x.u.email, x.st); }
+              await syncAdminProfilesFromSupabase(); go("admin"); toast("User reactivated.");
+            } catch (err) { toast(err.message || "Could not reactivate user. Run the supplied SQL setup first.", true); b.disabled = false; }
+          }));
           const reset = $("resetData");
           if (reset)
             reset.onclick = () =>
@@ -2919,6 +2982,16 @@
               return;
             }
             const email = (session.user.email || "").toLowerCase();
+            const { data: canUseApp, error: activeCheckError } = await client.rpc("finrise_check_user_active");
+            if (activeCheckError) throw activeCheckError;
+            if (canUseApp !== true) {
+              await client.auth.signOut();
+              localStorage.removeItem(SESSION_KEY);
+              sessionStorage.removeItem(SESSION_KEY);
+              showView("auth");
+              setAuthNotice("This account has been deactivated by the administrator. Please contact support.");
+              return;
+            }
             const { data: isAdmin, error: roleError } = await client.rpc("is_finrise_admin");
             if (roleError) throw roleError;
             if (isAdmin === true) {
@@ -2933,9 +3006,17 @@
             }
             const { data: profile, error: profileError } = await client
               .from("finrise_profiles")
-              .select("id,email,full_name,username,country,referral_code")
+              .select("id,email,full_name,username,country,referral_code,is_active")
               .eq("id", session.user.id).single();
             if (profileError) throw profileError;
+            if (profile.is_active === false) {
+              await client.auth.signOut();
+              localStorage.removeItem(SESSION_KEY);
+              sessionStorage.removeItem(SESSION_KEY);
+              setAuthNotice("This account has been deactivated by the administrator. Please contact support.");
+              showView("auth");
+              return;
+            }
             adminMode = false;
             currentUser = { id: session.user.id, name: profile.full_name || email, email: profile.email || email, username: profile.username || "", country: profile.country || "", referralCode: profile.referral_code || "" };
             state = loadUserState(currentUser);
@@ -3839,6 +3920,7 @@
     if (!window.smartsupp) {
       var queue = [];
       var stub = function () { queue.push(arguments); };
+      stub._ = queue;
       stub.q = queue;
       window.smartsupp = stub;
     }

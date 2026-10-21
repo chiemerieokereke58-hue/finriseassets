@@ -787,7 +787,48 @@
           }
           const merged = Array.from(byEmail.values());
           saveUsers(merged);
+          await hydrateAdminDataFromSupabase();
           return merged.length;
+        }
+        async function hydrateUserStateFromSupabase() {
+          if (!currentUser?.id || !window.finriseSupabase || !state) return;
+          const client = window.finriseSupabase;
+          const [bal, deps, wds, txs] = await Promise.all([
+            client.from("user_balances").select("available_balance,currency").eq("user_id", currentUser.id).eq("currency", "USD").maybeSingle(),
+            client.from("deposit_requests").select("id,amount,currency,transaction_reference,status,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false}),
+            client.from("withdrawal_requests").select("id,amount,currency,destination_address,status,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false}),
+            client.from("investment_transactions").select("id,transaction_type,amount,currency,description,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false})
+          ]);
+          for (const result of [bal,deps,wds,txs]) if (result.error) throw result.error;
+          if (bal.data) state.balance = Number(bal.data.available_balance || 0);
+          const remote = [];
+          for (const d of (deps.data || [])) remote.push({id:d.id,type:"Deposit",amount:Number(d.amount),status:capitalizeStatus(d.status),date:d.created_at,reference:d.transaction_reference || d.id,details:(d.currency || "")+" deposit request",_source:"deposit_requests"});
+          for (const w of (wds.data || [])) remote.push({id:w.id,type:"Withdrawal",amount:Number(w.amount),status:capitalizeStatus(w.status),date:w.created_at,reference:w.id,details:(w.currency || "")+" withdrawal request | Address: "+w.destination_address,_source:"withdrawal_requests"});
+          for (const t of (txs.data || [])) remote.push({id:t.id,type:t.transaction_type || "Transaction",amount:Number(t.amount),status:"Recorded",date:t.created_at,reference:t.id,details:t.description || t.currency || "",_source:"investment_transactions"});
+          const localOnly = (state.transactions || []).filter(t => !["Deposit","Withdrawal"].includes(t.type) && !t._source && !remote.some(r => r.id === t.id));
+          state.transactions = [...remote, ...localOnly].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+          saveState();
+        }
+        function capitalizeStatus(value) {
+          const s=String(value||"pending").toLowerCase();
+          return s.charAt(0).toUpperCase()+s.slice(1);
+        }
+        async function hydrateAdminDataFromSupabase() {
+          const client=window.finriseSupabase;
+          const [balances,deposits,withdrawals,ledger]=await Promise.all([
+            client.from("user_balances").select("user_id,available_balance,currency"),
+            client.from("deposit_requests").select("id,user_id,amount,currency,transaction_reference,status,payment_verified,created_at"),
+            client.from("withdrawal_requests").select("id,user_id,amount,currency,destination_address,status,created_at"),
+            client.from("investment_transactions").select("id,user_id,transaction_type,amount,currency,description,created_at")
+          ]);
+          for(const result of [balances,deposits,withdrawals,ledger]) if(result.error) throw result.error;
+          const users=getUsers();
+          const byId=new Map(users.map(u=>[String(u.id||""),u]));
+          for(const u of users){ const st=loadUserState(u); const b=(balances.data||[]).find(x=>x.user_id===u.id && String(x.currency).toUpperCase()==="USD"); if(b) st.balance=Number(b.available_balance||0); else st.balance=0; st.transactions=[]; saveAdminUser(u.email,st); }
+          const append=(row,type,details,source)=>{ const u=byId.get(String(row.user_id)); if(!u)return; const st=loadUserState(u); st.transactions.push({id:row.id,type,amount:Number(row.amount||0),status:capitalizeStatus(row.status||"recorded"),date:row.created_at,reference:row.transaction_reference||row.id,details,paymentVerified:source==="deposit_requests" && row.payment_verified===true,_source:source}); saveAdminUser(u.email,st); };
+          for(const d of (deposits.data||[])) append(d,"Deposit",(d.currency||"")+" deposit request"+(d.transaction_reference?" | Ref: "+d.transaction_reference:""),"deposit_requests");
+          for(const w of (withdrawals.data||[])) append(w,"Withdrawal",(w.currency||"")+" withdrawal request | Address: "+(w.destination_address||""),"withdrawal_requests");
+          for(const t of (ledger.data||[])) append(t,t.transaction_type||"Transaction",t.description||t.currency||"","investment_transactions");
         }
         function userDataKey(email) {
           return DATA_KEY + "_" + email.toLowerCase();
@@ -1058,6 +1099,7 @@
               if (profileError) throw profileError;
               currentUser = { name: profile.full_name || name, email: profile.email || email, id: data.user.id, username: profile.username || username, country: profile.country || country || "", referralCode: profile.referral_code || "" };
               state = loadUserState(currentUser);
+              await hydrateUserStateFromSupabase();
               state.notifications.unshift({ id: uid(), title: "Welcome to FINRISE ASSETS", message: "Welcome to FINRISE ASSETS. Build your future with us.", date: new Date().toISOString(), read: false });
               saveState();
               localStorage.setItem(SESSION_KEY, JSON.stringify({ name: currentUser.name, email: currentUser.email }));
@@ -1087,6 +1129,7 @@
             adminMode = false;
             currentUser = { id: data.user.id, name: profile.full_name || data.user.email, email: profile.email || data.user.email, username: profile.username || "", country: profile.country || "", referralCode: profile.referral_code || "" };
             state = loadUserState(currentUser);
+            await hydrateUserStateFromSupabase();
             if (state.isDeactivated) {
               await client.auth.signOut();
               currentUser = null; state = null;
@@ -1345,7 +1388,7 @@
  </section>
  <section class="card section hidden" id="adminUsersSection"><div class="section-head"><div><h2>Active users</h2><p>Deactivated accounts are listed separately below</p></div><button class="btn btn-small" id="adminRefresh">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Country</th><th>Registered</th><th>Available balance</th><th>Invested</th><th>Notifications</th><th>Actions</th></tr></thead><tbody>${activeUsers.length ? activeUsers.map(({ u, st }) => `<tr><td><strong>${esc(u.name)}</strong><br><span class="muted">${esc(u.email)}</span><br><span class="muted">@${esc(u.username || "user")}</span></td><td>${esc(u.country || "Not supplied")}</td><td>${dateText(u.createdAt || new Date().toISOString())}</td><td>${money(st.balance)}</td><td>${money(st.invested)}</td><td>${st.notifications.length}</td><td><div class="admin-actions"><button class="btn btn-small" data-admin-view="${esc(u.email)}">View</button><button class="btn btn-small btn-primary" data-admin-add="${esc(u.email)}">Add funds</button><button class="btn btn-small" data-admin-notify="${esc(u.email)}">Notify</button></div></td></tr>`).join("") : '<tr><td colspan="7">No active users yet.</td></tr>'}</tbody></table></div></section>
  <section class="card section hidden" id="adminDeactivatedSection"><div class="section-head"><div><h2>Deactivated users</h2><p>Accounts disabled from the user side</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Deactivated</th><th>Status</th><th>Action</th></tr></thead><tbody>${deactivatedUsers.length ? deactivatedUsers.map(({ u, st }) => `<tr><td>${esc(u.name)}<br><span class="muted">${esc(u.email)}</span></td><td>${dateText(st.deactivatedAt || st.lastActivity || u.createdAt || new Date().toISOString())}</td><td><span class="deactivated-tag">Deactivated user</span></td><td><button class="btn btn-small" data-admin-reactivate="${esc(u.email)}">Reactivate</button></td></tr>`).join("") : '<tr><td colspan="4">No deactivated users.</td></tr>'}</tbody></table></div></section>
- <section class="grid two-col section hidden" id="adminRequestsSection"><div class="card"><div class="section-head"><div><h2>Deposit requests</h2><p>Approve to record a balance credit, or reject.</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Details</th><th>Action</th></tr></thead><tbody>${deposits.length ? deposits.map(({ u, t }) => `<tr><td>${esc(u.email)}</td><td>${money(t.amount)}</td><td>${esc(t.details || "Deposit")}</td><td><div class="admin-actions"><button class="btn btn-small btn-primary" data-admin-deposit="approve" data-email="${esc(u.email)}" data-id="${esc(t.id)}">Approve</button><button class="btn btn-small" data-admin-deposit="reject" data-email="${esc(u.email)}" data-id="${esc(t.id)}">Reject</button></div></td></tr>`).join("") : '<tr><td colspan="4">No pending deposits.</td></tr>'}</tbody></table></div></div>
+ <section class="grid two-col section hidden" id="adminRequestsSection"><div class="card"><div class="section-head"><div><h2>Deposit requests</h2><p>Verify actual receipt of payment first. Only then can a deposit be approved and credited.</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Details</th><th>Payment check / action</th></tr></thead><tbody>${deposits.length ? deposits.map(({ u, t }) => `<tr><td>${esc(u.email)}</td><td>${money(t.amount)}</td><td>${esc(t.details || "Deposit")}<br><span class="muted">${t.paymentVerified ? "Payment verified" : "Payment not verified"}</span></td><td><div class="admin-actions">${t.paymentVerified ? '<span class="muted">Verified</span>' : `<button class="btn btn-small" data-admin-verify-deposit="1" data-id="${esc(t.id)}">Mark verified</button>`}<button class="btn btn-small btn-primary" data-admin-deposit="approve" data-email="${esc(u.email)}" data-id="${esc(t.id)}" ${t.paymentVerified ? "" : "disabled"}>Approve</button><button class="btn btn-small" data-admin-deposit="reject" data-email="${esc(u.email)}" data-id="${esc(t.id)}">Reject</button></div></td></tr>`).join("") : '<tr><td colspan="4">No pending deposits.</td></tr>'}</tbody></table></div></div>
  <div class="card"><div class="section-head"><div><h2>Withdrawal requests</h2><p>Approve or reject pending requests.</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Amount</th><th>Asset / address</th><th>Action</th></tr></thead><tbody>${
    withdrawals.length
      ? withdrawals
@@ -1524,41 +1567,17 @@
                 const email = b.dataset.adminAdd;
                 openModal(
                   "Add funds to account",
-                  `<p>Record a balance adjustment for <strong>${esc(email)}</strong>. This changes only this browser's local records.</p><div class="field"><label>Amount (USD)</label><input id="adminAmount" type="number" min="0.01" step="0.01" placeholder="100.00"></div><div class="field"><label>Reason / reference</label><input id="adminReason" maxlength="120" placeholder="Adjustment reference"></div><div class="quick-actions"><button class="btn btn-primary" id="adminConfirmAdd">Add funds</button><button class="btn" data-close-modal>Cancel</button></div>`,
+                  `<p>Record a balance adjustment for <strong>${esc(email)}</strong>. This records a balance adjustment in the secured database and audit log.</p><div class="field"><label>Amount (USD)</label><input id="adminAmount" type="number" min="0.01" step="0.01" placeholder="100.00"></div><div class="field"><label>Reason / reference</label><input id="adminReason" maxlength="120" placeholder="Adjustment reference"></div><div class="quick-actions"><button class="btn btn-primary" id="adminConfirmAdd">Add funds</button><button class="btn" data-close-modal>Cancel</button></div>`,
                 );
-                $("adminConfirmAdd").onclick = () => {
-                  const amount = Number($("adminAmount").value),
-                    reason = $("adminReason").value.trim();
-                  if (!(amount > 0) || !Number.isFinite(amount)) {
-                    toast("Enter a valid amount.", true);
-                    return;
-                  }
-                  const x = adminUserState(email);
-                  if (!x) {
-                    toast("User not found.", true);
-                    return;
-                  }
-                  x.st.balance = Number(x.st.balance || 0) + amount;
-                  x.st.transactions.unshift({
-                    id: uid(),
-                    type: "Admin credit",
-                    amount,
-                    status: "Recorded locally",
-                    date: new Date().toISOString(),
-                    reference: uid(),
-                    details: reason || "Administrator balance adjustment",
-                  });
-                  x.st.notifications.unshift({
-                    id: uid(),
-                    title: "Account balance updated",
-                    message: `An administrator recorded a ${money(amount)} balance adjustment. Reference: ${reason || "not supplied"}.`,
-                    date: new Date().toISOString(),
-                    read: false,
-                  });
-                  adminSaveUser(email, x.st);
-                  closeModal();
-                  go("admin");
-                  toast("Local account balance updated.");
+                $("adminConfirmAdd").onclick = async () => {
+                  const amount = Number($("adminAmount").value), reason = $("adminReason").value.trim();
+                  if (!(amount > 0) || !Number.isFinite(amount)) { toast("Enter a valid amount.", true); return; }
+                  const button=$("adminConfirmAdd"); button.disabled=true; button.textContent="Saving…";
+                  try {
+                    const {error}=await window.finriseSupabase.rpc("finrise_admin_credit_balance",{p_email:email,p_amount:amount,p_reason:reason||"Administrator balance adjustment"});
+                    if(error) throw error;
+                    await syncAdminProfilesFromSupabase(); closeModal(); go("admin"); toast("Balance adjustment saved to Supabase.");
+                  } catch(err) { toast(err.message||"Could not save balance adjustment.",true); button.disabled=false; button.textContent="Add funds"; }
                 };
               }),
           );
@@ -1584,68 +1603,36 @@
                 });
               }),
           );
-          app.querySelectorAll("[data-admin-deposit]").forEach(
-            (b) =>
-              (b.onclick = () => {
-                const x = adminUserState(b.dataset.email);
-                if (!x) return;
-                const t = x.st.transactions.find((z) => z.id === b.dataset.id);
-                if (!t || t.status !== "Pending") return;
-                if (b.dataset.adminDeposit === "approve") {
-                  t.status = "Approved";
-                  x.st.balance =
-                    Number(x.st.balance || 0) + Number(t.amount || 0);
-                } else t.status = "Rejected";
-                x.st.notifications.unshift({
-                  id: uid(),
-                  title:
-                    b.dataset.adminDeposit === "approve"
-                      ? "Deposit approved"
-                      : "Deposit request rejected",
-                  message:
-                    b.dataset.adminDeposit === "approve"
-                      ? "Your deposit has been approved and been added to your balance. Thanks for beginning this journey with FINRISE ASSETS; we wish you the best."
-                      : "Your deposit request was rejected. Please contact support if you need help.",
-                  date: new Date().toISOString(),
-                  read: false,
-                });
-                adminSaveUser(x.u.email, x.st);
-                go("admin");
-                toast("Deposit request " + t.status.toLowerCase() + ".");
-              }),
-          );
-          app.querySelectorAll("[data-admin-withdraw]").forEach(
-            (b) =>
-              (b.onclick = () => {
-                const x = adminUserState(b.dataset.email);
-                if (!x) return;
-                const t = x.st.transactions.find((z) => z.id === b.dataset.id);
-                if (!t || t.status !== "Pending") return;
-                if (b.dataset.adminWithdraw === "approve") {
-                  t.status = "Approved";
-                } else {
-                  t.status = "Rejected — refunded";
-                  x.st.balance =
-                    Number(x.st.balance || 0) + Number(t.amount || 0);
-                }
-                x.st.notifications.unshift({
-                  id: uid(),
-                  title:
-                    b.dataset.adminWithdraw === "approve"
-                      ? "Withdrawal approved"
-                      : "Withdrawal request rejected",
-                  message:
-                    b.dataset.adminWithdraw === "approve"
-                      ? "Your withdrawal has been approved. Please report it if you did not initiate this withdrawal. Thanks for trusting us."
-                      : "Your withdrawal request was rejected and the amount was returned to your available balance.",
-                  date: new Date().toISOString(),
-                  read: false,
-                });
-                adminSaveUser(x.u.email, x.st);
-                go("admin");
-                toast("Withdrawal record updated.");
-              }),
-          );
+          app.querySelectorAll("[data-admin-verify-deposit]").forEach((b) => (b.onclick = async () => {
+            const button=b;
+            if (!window.confirm("Only continue if you independently confirmed the payment was actually received. Mark this deposit as payment verified?")) return;
+            button.disabled=true;
+            try {
+              const {error}=await window.finriseSupabase.rpc("finrise_admin_verify_deposit",{p_request_id:b.dataset.id});
+              if(error) throw error;
+              await syncAdminProfilesFromSupabase(); go("admin");
+              toast("Payment verification recorded. You can now review the deposit.");
+            } catch(err) { toast(err.message||"Could not verify payment.",true); button.disabled=false; }
+          }));
+          app.querySelectorAll("[data-admin-deposit]").forEach((b) => (b.onclick = async () => {
+            const button=b; button.disabled=true;
+            try {
+              const decision=b.dataset.adminDeposit==="approve"?"approved":"rejected";
+              const {error}=await window.finriseSupabase.rpc("finrise_admin_review_request",{p_kind:"deposit",p_request_id:b.dataset.id,p_decision:decision});
+              if(error) throw error;
+              await syncAdminProfilesFromSupabase(); go("admin"); toast("Deposit request "+decision+" in database.");
+            } catch(err) { toast(err.message||"Could not update deposit request.",true); button.disabled=false; }
+          }));
+          app.querySelectorAll("[data-admin-withdraw]").forEach((b) => (b.onclick = async () => {
+            const button=b; button.disabled=true;
+            try {
+              const decision=b.dataset.adminWithdraw==="approve"?"approved":"rejected";
+              const {error}=await window.finriseSupabase.rpc("finrise_admin_review_request",{p_kind:"withdrawal",p_request_id:b.dataset.id,p_decision:decision});
+              if(error) throw error;
+              await syncAdminProfilesFromSupabase(); go("admin");
+              toast(decision==="approved"?"Withdrawal marked approved. This does not send funds automatically.":"Withdrawal rejected; reserved balance returned.");
+            } catch(err) { toast(err.message||"Could not update withdrawal request.",true); button.disabled=false; }
+          }));
           app.querySelectorAll("[data-admin-event-read]").forEach(
             (b) =>
               (b.onclick = () => {
@@ -2585,33 +2572,14 @@
                 );
                 return;
               }
-              addTransaction(
-                "Deposit",
-                amount,
-                "Pending",
-                selectedDepositAsset + " deposit request",
-              );
-              state.notifications.unshift({
-                id: uid(),
-                title: "Deposit request",
-                message: "Deposit request submitted for review.",
-                date: new Date().toISOString(),
-                read: false,
-              });
-              const dt = state.transactions[0];
-              addAdminEvent(
-                "deposit",
-                "Deposit request",
-                `${state.name || currentUser.email} has submitted a deposit request for admin review.`,
-                currentUser.email,
-                { amount, asset: selectedDepositAsset, transactionId: dt?.id },
-              );
-              saveState();
-              go("deposits");
-              toast(
-                "This front-end preview cannot accept or verify deposits. Connect a secure, audited payment backend before use.",
-                true,
-              );
+              rd.disabled=true; rd.textContent="Submitting…";
+              (async()=>{ try {
+                const {error}=await window.finriseSupabase.rpc("finrise_submit_deposit",{p_amount:amount,p_currency:selectedDepositAsset,p_reference:null});
+                if(error) throw error;
+                await hydrateUserStateFromSupabase(); go("deposits"); toast("Deposit request saved. It remains pending until an administrator verifies the payment.");
+              } catch(err) { toast(err.message||"Could not submit deposit request.",true); }
+                finally { rd.disabled=false; rd.textContent="Continue to deposit request"; }
+              })();
             };
           const sw = $("submitWithdrawal");
           if (sw)
@@ -2634,24 +2602,14 @@
                 toast("Insufficient available balance.", true);
                 return;
               }
-              state.balance -= amount;
-              addTransaction(
-                "Withdrawal",
-                amount,
-                "Pending",
-                asset + " withdrawal request | Address: " + address,
-              );
-              const wt = state.transactions[0];
-              addAdminEvent(
-                "withdrawal",
-                "Withdrawal request",
-                `Dear admin Daniel, ${state.name || currentUser.email} has initiated a withdrawal. Please approve or reject this withdrawal.`,
-                currentUser.email,
-                { amount, asset, address, transactionId: wt?.id },
-              );
-              saveState();
-              go("withdrawals");
-              toast("Withdrawal request submitted for review.");
+              sw.disabled=true; sw.textContent="Submitting…";
+              (async()=>{ try {
+                const {error}=await window.finriseSupabase.rpc("finrise_submit_withdrawal",{p_amount:amount,p_currency:asset,p_address:address});
+                if(error) throw error;
+                await hydrateUserStateFromSupabase(); go("withdrawals"); toast("Withdrawal request saved. The amount is reserved while it is reviewed.");
+              } catch(err) { toast(err.message||"Could not submit withdrawal request.",true); }
+                finally { sw.disabled=false; sw.textContent="Submit withdrawal request"; }
+              })();
             };
           const sp = $("saveProfile");
           if (sp)
@@ -2679,29 +2637,24 @@
                 toast("That email is already used by another account.", true);
                 return;
               }
-              const applyProfileChange = () => {
-                const oldKey = userDataKey(oldEmail);
-                const newKey = userDataKey(email);
-                state.name = n;
-                state.email = email;
-                currentUser.name = n;
-                currentUser.email = email;
-                localStorage.setItem(newKey, JSON.stringify(state));
-                if (oldKey !== newKey) localStorage.removeItem(oldKey);
-                const ix = users.findIndex(
-                  (u) => u.email.toLowerCase() === oldEmail,
-                );
-                if (ix >= 0) {
-                  users[ix].name = n;
-                  users[ix].email = email;
-                  saveUsers(users);
-                }
-                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
-                refreshAvatars();
-                go("profile");
-                toast(
-                  "Profile changes saved. Use the updated email to log in on this device.",
-                );
+              const applyProfileChange = async () => {
+                try {
+                  if (email !== oldEmail) {
+                    const {error}=await window.finriseSupabase.auth.updateUser({email});
+                    if(error) throw error;
+                    toast("Email-change confirmation requested. Confirm the message from Supabase before using the new email.");
+                  }
+                  const {error: profileError}=await window.finriseSupabase.from("finrise_profiles").update({full_name:n}).eq("id",currentUser.id);
+                  if(profileError) throw profileError;
+                  const oldKey = userDataKey(oldEmail);
+                  state.name = n;
+                  currentUser.name = n;
+                  localStorage.setItem(oldKey, JSON.stringify(state));
+                  const ix = users.findIndex(u => u.email.toLowerCase() === oldEmail);
+                  if (ix >= 0) { users[ix].name = n; saveUsers(users); }
+                  localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+                  refreshAvatars(); go("profile"); toast("Profile name saved to Supabase.");
+                } catch(err) { toast(err.message||"Could not save profile changes.",true); }
               };
               if (email !== oldEmail) {
                 openModal(
@@ -2986,6 +2939,7 @@
             adminMode = false;
             currentUser = { id: session.user.id, name: profile.full_name || email, email: profile.email || email, username: profile.username || "", country: profile.country || "", referralCode: profile.referral_code || "" };
             state = loadUserState(currentUser);
+            await hydrateUserStateFromSupabase();
             if (state.isDeactivated) {
               await client.auth.signOut();
               currentUser = null; state = null;

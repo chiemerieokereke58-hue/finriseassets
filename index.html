@@ -4169,5 +4169,46 @@ body.admin-mode #menuButton{position:fixed!important;left:14px!important;bottom:
 })();
 </script>
 
+
+<script id="finrise-final-auth-click-repair">
+(function(){
+  'use strict';
+  function forceAuthScreen(mode){
+    if(mode!=='login' && mode!=='register') return;
+    var pub=document.getElementById('publicApp');
+    var auth=document.getElementById('authApp');
+    var dash=document.getElementById('dashboardApp');
+    // First try the site's real auth function so the form state is initialized.
+    try { if(typeof window.finriseOpenAuth==='function') window.finriseOpenAuth(mode); } catch(err) { console.warn('Auth initializer fallback:',err); }
+    // Always enforce the visible screen even if a legacy handler fails.
+    if(pub){ pub.classList.add('hidden'); pub.style.setProperty('display','none','important'); }
+    if(dash){ dash.classList.add('hidden'); dash.style.removeProperty('display'); }
+    if(auth){ auth.classList.remove('hidden'); auth.style.setProperty('display','block','important'); auth.style.setProperty('visibility','visible','important'); auth.style.setProperty('opacity','1','important'); }
+    document.body.classList.remove('admin-mode');
+    var tab=document.getElementById(mode==='login'?'loginTab':'registerTab');
+    try { if(tab) tab.click(); } catch(err) { console.warn('Auth tab fallback:',err); }
+    var title=document.getElementById('authTitle');
+    var subtitle=document.getElementById('authSubtitle');
+    if(title && !title.textContent.trim()) title.textContent=mode==='register'?'Create your account':'Welcome back';
+    if(subtitle && !subtitle.textContent.trim()) subtitle.textContent=mode==='register'?'Create your profile and access the FINRISE ASSETS dashboard.':'Log in to continue to your account.';
+    window.__finriseAuthModeRequested=mode;
+    window.scrollTo(0,0);
+  }
+  document.addEventListener('click',function(ev){
+    var el=ev.target && ev.target.closest ? ev.target.closest('[data-auth]') : null;
+    if(!el) return;
+    var mode=el.getAttribute('data-auth');
+    if(mode!=='login' && mode!=='register') return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    forceAuthScreen(mode);
+  },true);
+  // Make sure visible homepage action buttons are actually clickable on touch screens.
+  var css=document.createElement('style');
+  css.id='finrise-final-auth-click-repair-css';
+  css.textContent='html body #publicApp [data-auth]{pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important;position:relative!important;z-index:2147483646!important}html body #publicApp .site-header,html body #publicApp .header-actions,html body #publicApp .hero-actions{pointer-events:auto!important}html body #publicApp .hero-visual,html body #publicApp .hero-photo,html body #publicApp .hero:before,html body #publicApp .hero:after{pointer-events:none!important}';
+  document.head.appendChild(css);
+})();
+</script>
 </body>
 </html>

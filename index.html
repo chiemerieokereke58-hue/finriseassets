@@ -438,10 +438,10 @@
                   <option value="">Select your country</option><option value="Nigeria">Nigeria</option><option value="South Africa">South Africa</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="Uganda">Uganda</option><option value="Tanzania">Tanzania</option><option value="Rwanda">Rwanda</option><option value="Ethiopia">Ethiopia</option><option value="Egypt">Egypt</option><option value="Morocco">Morocco</option><option value="Algeria">Algeria</option><option value="Tunisia">Tunisia</option><option value="Cameroon">Cameroon</option><option value="Senegal">Senegal</option><option value="Ivory Coast">Ivory Coast</option><option value="Côte d’Ivoire">Côte d’Ivoire</option><option value="Zambia">Zambia</option><option value="Zimbabwe">Zimbabwe</option><option value="Botswana">Botswana</option><option value="Namibia">Namibia</option><option value="Mozambique">Mozambique</option><option value="Angola">Angola</option><option value="Malawi">Malawi</option><option value="Mauritius">Mauritius</option><option value="Seychelles">Seychelles</option><option value="Sierra Leone">Sierra Leone</option><option value="Liberia">Liberia</option><option value="Gambia">Gambia</option><option value="Benin">Benin</option><option value="Togo">Togo</option><option value="Niger">Niger</option><option value="Burkina Faso">Burkina Faso</option><option value="Mali">Mali</option><option value="Chad">Chad</option><option value="Gabon">Gabon</option><option value="Republic of the Congo">Republic of the Congo</option><option value="Democratic Republic of the Congo">Democratic Republic of the Congo</option><option value="Somalia">Somalia</option><option value="Sudan">Sudan</option><option value="South Sudan">South Sudan</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Canada">Canada</option><option value="Australia">Australia</option><option value="New Zealand">New Zealand</option><option value="India">India</option><option value="Pakistan">Pakistan</option><option value="Bangladesh">Bangladesh</option><option value="United Arab Emirates">United Arab Emirates</option><option value="Saudi Arabia">Saudi Arabia</option><option value="Germany">Germany</option><option value="France">France</option><option value="Italy">Italy</option><option value="Spain">Spain</option><option value="Portugal">Portugal</option><option value="Netherlands">Netherlands</option><option value="Switzerland">Switzerland</option><option value="Sweden">Sweden</option><option value="Norway">Norway</option><option value="Turkey">Turkey</option><option value="China">China</option><option value="Japan">Japan</option><option value="South Korea">South Korea</option><option value="Singapore">Singapore</option><option value="Malaysia">Malaysia</option><option value="Indonesia">Indonesia</option><option value="Philippines">Philippines</option><option value="Thailand">Thailand</option><option value="Brazil">Brazil</option><option value="Mexico">Mexico</option>
                 </select>
               </div>
-              <div class="field hidden" id="locationConsentField" style="padding:10px 12px;border:1px solid var(--border);border-radius:10px">
-                <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-weight:500">
-                  <input id="authLocationConsent" type="checkbox" style="margin-top:4px;flex:0 0 auto">
-                  <span>Share my device location at registration so the administrator can see the approximate location country/city. Your browser will ask for permission. If you leave this unchecked or deny permission, no GPS location is saved.</span>
+              <div class="field hidden" id="locationConsentField">
+                <label class="location-consent-row" for="authLocationConsent">
+                  <input id="authLocationConsent" type="checkbox">
+                  <span><strong>Share approximate location (optional)</strong><small>Allow your browser to share your approximate city and country with the administrator. You can decline permission or leave this unchecked.</small></span>
                 </label>
               </div>
                             <div class="field">
@@ -1438,13 +1438,13 @@
  <div class="admin-kpis" id="adminOverviewKpis"><div class="admin-kpi"><small>REGISTERED USERS</small><strong>${users.length}</strong></div><div class="admin-kpi"><small>ACTIVE USERS</small><strong>${activeUsers.length}</strong></div><div class="admin-kpi"><small>ACTIVE INVESTMENT VALUE</small><strong>${money(totalInvested)}</strong></div><div class="admin-kpi"><small>TOTAL SITE ACCOUNT VALUE</small><strong>${money(total)}</strong></div><div class="admin-kpi"><small>CONFIRMED DEPOSITS</small><strong>${money(totalDeposits)}</strong></div><div class="admin-kpi"><small>CONFIRMED WITHDRAWALS</small><strong>${money(totalWithdrawals)}</strong></div><div class="admin-kpi"><small>PENDING DEPOSITS</small><strong>${deposits.length}</strong></div><div class="admin-kpi"><small>PENDING WITHDRAWALS</small><strong>${withdrawals.length}</strong></div></div>
  <section class="section admin-market-section" id="adminMarketSection">
    <div class="section-head"><div><h2>Live market centre</h2><p>Live crypto prices, a scrolling market ticker and an economic calendar from TradingView.</p></div><span class="live-label"><span class="pulse"></span> MARKET FEED</span></div>
-   <div class="card admin-ticker-card"><div class="admin-market-card-title"><div><strong>Market ticker</strong><small>Bitcoin · Ethereum · Solana · BNB · XRP · Litecoin · TRON</small></div><span class="admin-live-dot">LIVE FEED</span></div><div id="adminMarketTicker" class="admin-market-widget"><div class="muted">Loading TradingView ticker…</div></div></div>
+   <div class="card admin-ticker-card" id="adminMarketTickerCard"><div class="admin-market-card-title"><div><strong>Market ticker</strong><small>Bitcoin · Ethereum · Solana · BNB · XRP · Litecoin · TRON</small></div><span class="admin-live-dot">LIVE FEED</span></div><div id="adminMarketTicker" class="admin-market-widget"><div class="muted">Loading TradingView ticker…</div></div></div>
    <div class="grid two-col admin-market-grid">
      <section class="card"><div class="admin-market-card-title"><div><strong>Crypto prices</strong><small>USD · refreshed automatically when the provider is available</small></div><span class="admin-live-dot">● LIVE</span></div><div class="admin-live-prices">${Object.values(ASSETS).map(a=>`<div class="admin-live-price-row"><div class="coin-info">${coinImg(a.symbol,34)}<div><strong>${esc(a.name)}</strong><small>${esc(a.symbol)} / USD</small></div></div><div class="admin-live-price-value" data-admin-price="${esc(a.symbol)}">Loading…</div></div>`).join("")}</div><p class="panel-note">Prices are informational market data and are not account balances.</p></section>
-     <section class="card"><div class="admin-market-card-title"><div><strong>Market calendar</strong><small>Economic events and scheduled releases</small></div><span class="admin-live-dot">CALENDAR</span></div><div id="adminMarketCalendar" class="admin-market-calendar"><div class="muted">Loading market calendar…</div></div></section>
+     <section class="card" id="adminMarketCalendarCard"><div class="admin-market-card-title"><div><strong>Market calendar</strong><small>Economic events and scheduled releases</small></div><span class="admin-live-dot">CALENDAR</span></div><div id="adminMarketCalendar" class="admin-market-calendar"><div class="muted">Loading market calendar…</div></div></section>
    </div>
    <section class="card admin-market-calculator-card" style="margin-top:14px"><div class="admin-market-card-title"><div><strong>Market calculator</strong><small>Estimate the USD value using the latest displayed market price</small></div><span class="admin-live-dot">CALCULATOR</span></div><div class="grid two-col" style="align-items:end"><div class="field"><label for="adminCalcAsset">Asset</label><select id="adminCalcAsset">${Object.values(ASSETS).map(a=>`<option value="${esc(a.symbol)}">${esc(a.name)} (${esc(a.symbol)})</option>`).join("")}</select></div><div class="field"><label for="adminCalcAmount">Amount of asset</label><input id="adminCalcAmount" type="number" min="0" step="any" value="1" inputmode="decimal" placeholder="Enter amount"></div></div><div class="admin-kpi" style="margin-top:12px"><small>ESTIMATED VALUE (USD)</small><strong id="adminCalcResult">Waiting for market price…</strong><p id="adminCalcPriceNote" class="panel-note" style="margin-top:6px">Price updates when market data is available.</p></div></section>
-   <section class="card admin-market-overview-card"><div class="admin-market-card-title"><div><strong>Market overview</strong><small>Market movements and asset performance</small></div></div><div id="adminMarketOverview" class="admin-market-overview"><div class="muted">Loading market overview…</div></div></section>
+   <section class="card admin-market-overview-card" id="adminMarketOverviewCard"><div class="admin-market-card-title"><div><strong>Market overview</strong><small>Market movements and asset performance</small></div></div><div id="adminMarketOverview" class="admin-market-overview"><div class="muted">Loading market overview…</div></div></section>
  </section>
  <section class="card section hidden" id="adminReferralManager">
    <div class="section-head"><div><h2>Referral manager</h2><p>Referral tree, direct sponsor, each user's available balance, invested amount and referral earnings.</p></div><button class="btn btn-small" id="adminRefreshTree">Refresh tree</button></div>
@@ -1466,7 +1466,7 @@
          .join("")
      : '<tr><td colspan="4">No pending withdrawals.</td></tr>'
  }</tbody></table></div></div></section>
- <section class="grid two-col section hidden" id="adminPlansSection"><div class="card"><h2>Investment plan manager</h2><p class="subtitle">Changes apply to this browser's plan list.</p><div class="admin-form"><label class="admin-label">Existing plan</label><select id="adminPlan">${PLANS.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active === false ? " (deactivated)" : ""}</option>`).join("")}</select><div class="quick-actions" style="margin:10px 0 16px"><button class="btn btn-small" id="adminNewPlan" type="button">＋ Add new plan</button><button class="btn btn-small" id="adminTogglePlan" type="button">Deactivate / activate</button><button class="btn btn-small" id="adminRemovePlan" type="button">Remove plan</button></div><label class="admin-label">Plan name</label><input id="adminPlanName" maxlength="50"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="adminPlanMin" type="number" min="0"></div><div><label class="admin-label">Maximum ($)</label><input id="adminPlanMax" type="number" min="0"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="adminPlanDuration" maxlength="40"></div><div><label class="admin-label">Advertised return (%)</label><input id="adminPlanRoi" type="number" min="0" max="1000"></div></div><button class="btn btn-primary" id="adminSavePlan">Save plan</button><p class="panel-note">Returns are editable display settings, not guaranteed or verified investment outcomes.</p></div></div>
+ <section class="grid two-col section hidden" id="adminPlansSection"><div class="card"><h2>Investment plan manager</h2><p class="subtitle">Changes apply to this browser's plan list.</p><div class="admin-plan-card-grid">${PLANS.map((p) => `<article class="admin-plan-edit-card ${p.active === false ? "is-inactive" : ""}"><div class="admin-plan-edit-top"><span class="admin-plan-chip">${esc(p.badge || "PLAN")}</span><span class="admin-plan-state">${p.active === false ? "Inactive" : "Active"}</span></div><h3>${esc(p.name)}</h3><p class="admin-plan-range">${money(p.min)} – ${money(p.max)}</p><div class="admin-plan-meta"><span><small>Duration</small><strong>${esc(p.duration)}</strong></span><span><small>Advertised return</small><strong>${esc(p.roi)}%</strong></span></div><button class="btn btn-small btn-primary" type="button" data-plan-edit="${esc(p.id)}">Edit plan</button></article>`).join("")}</div><div class="admin-form admin-plan-editor"><label class="admin-label">Selected plan</label><select id="adminPlan">${PLANS.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active === false ? " (deactivated)" : ""}</option>`).join("")}</select><div class="quick-actions" style="margin:10px 0 16px"><button class="btn btn-small" id="adminNewPlan" type="button">＋ Add new plan</button><button class="btn btn-small" id="adminTogglePlan" type="button">Deactivate / activate</button><button class="btn btn-small" id="adminRemovePlan" type="button">Remove plan</button></div><label class="admin-label">Plan name</label><input id="adminPlanName" maxlength="50"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="adminPlanMin" type="number" min="0"></div><div><label class="admin-label">Maximum ($)</label><input id="adminPlanMax" type="number" min="0"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="adminPlanDuration" maxlength="40"></div><div><label class="admin-label">Advertised return (%)</label><input id="adminPlanRoi" type="number" min="0" max="1000"></div></div><button class="btn btn-primary" id="adminSavePlan">Save plan</button><p class="panel-note">Returns are editable display settings, not guaranteed or verified investment outcomes.</p></div></div>
  </div></section><section class="card section hidden" id="adminSendNotificationSection"><div class="card"><h2>Send notification</h2><p class="subtitle">Add an in-app notification to one user or all registered users.</p><div class="admin-form"><label class="admin-label">Recipient</label><select id="adminNotifyTo"><option value="*">All registered users</option>${users.map((u) => `<option value="${esc(u.email)}">${esc(u.email)}</option>`).join("")}</select><label class="admin-label">Title</label><input id="adminNotifyTitle" maxlength="80" placeholder="Notification title"><label class="admin-label">Message</label><textarea id="adminNotifyMessage" rows="4" maxlength="500" placeholder="Write a clear message for the user"></textarea><button class="btn btn-primary" id="adminSendNotification">Send notification</button></div></div></section>
  <section class="card section admin-events-panel hidden" id="adminEventsSection"><div class="section-head"><div><h2>Admin notifications</h2><p>Registration, deposit, withdrawal and investment activity from this browser</p></div><span class="notification-state">${getAdminEvents().filter((e) => !e.read).length} unread</span></div><div class="admin-event-list">${
    getAdminEvents().length
@@ -1668,6 +1668,14 @@
                 });
               }),
           );
+          app.querySelectorAll("[data-plan-edit]").forEach((b) => (b.onclick = () => {
+            const selector = $("adminPlan");
+            if (!selector) return;
+            selector.value = b.dataset.planEdit;
+            selector.dispatchEvent(new Event("change"));
+            $("adminPlanName")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            $("adminPlanName")?.focus({ preventScroll: true });
+          }));
           app.querySelectorAll("[data-admin-deposit]").forEach((b) => (b.onclick = async () => {
             const button=b; button.disabled=true;
             try {
@@ -1675,7 +1683,7 @@
               const {error}=await window.finriseSupabase.rpc("finrise_admin_review_request",{p_kind:"deposit",p_request_id:b.dataset.id,p_decision:decision});
               if(error) throw error;
               await syncAdminProfilesFromSupabase(); go("admin"); toast("Deposit request "+decision+" in database.");
-            } catch(err) { toast(err.message||"Could not update deposit request.",true); button.disabled=false; }
+            } catch(err) { const msg=String(err?.message||"Could not update deposit request."); toast(/verified deposit|payment verified|verify.*payment/i.test(msg) ? "Payment is not verified yet. Confirm the real payment and its actual provider reference before approving." : msg,true); button.disabled=false; }
           }));
           app.querySelectorAll("[data-admin-withdraw]").forEach((b) => (b.onclick = async () => {
             const button=b; button.disabled=true;
@@ -4011,5 +4019,34 @@
     logos.forEach(function(img){ if(img.getAttribute('src')==='about:blank') img.setAttribute('src',src); });
   }
 })();
-</script></body>
+</script>
+<style id="finrise-neat-update-v2">
+/* Registration: compact optional location consent; avoid oversized blank-looking block. */
+#locationConsentField{margin:8px 0 12px!important;padding:0!important;}
+.location-consent-row{display:flex!important;align-items:flex-start!important;gap:10px!important;padding:11px 12px!important;border:1px solid var(--border,#30343b)!important;border-radius:12px!important;background:rgba(255,255,255,.025)!important;cursor:pointer!important;font-weight:400!important;}
+.location-consent-row input{flex:0 0 auto!important;width:17px!important;height:17px!important;margin:3px 0 0!important;}
+.location-consent-row span{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;}
+.location-consent-row strong{font-size:13px!important;font-weight:650!important;line-height:1.35!important;}
+.location-consent-row small{font-size:12px!important;line-height:1.45!important;color:var(--muted,#9ca3af)!important;}
+/* Keep the useful market price calculator and remove unreliable extra widgets. */
+#adminMarketTickerCard,#adminMarketCalendarCard,#adminMarketOverviewCard,.admin-market-grid{display:none!important;}
+.admin-market-section>.section-head{margin-bottom:12px!important;}
+/* Investment plans: one clear card per plan with its own edit action. */
+.admin-plan-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;margin:14px 0 20px;}
+.admin-plan-edit-card{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:1px solid rgba(198,157,70,.28);border-radius:16px;background:linear-gradient(145deg,rgba(198,157,70,.09),rgba(255,255,255,.025));box-shadow:0 8px 24px rgba(0,0,0,.12);}
+.admin-plan-edit-card.is-inactive{opacity:.7;border-style:dashed;}
+.admin-plan-edit-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.admin-plan-chip{display:inline-flex;padding:4px 8px;border-radius:999px;background:rgba(198,157,70,.13);color:#d9b96a;font-size:10px;font-weight:800;letter-spacing:.08em;}
+.admin-plan-state{font-size:11px;color:var(--muted,#9ca3af);}
+.admin-plan-edit-card h3{margin:2px 0 0;font-size:17px;line-height:1.25;}
+.admin-plan-range{margin:0;font-size:15px;font-weight:700;}
+.admin-plan-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 4px;}
+.admin-plan-meta span{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.admin-plan-meta small{font-size:11px;color:var(--muted,#9ca3af);}
+.admin-plan-meta strong{font-size:13px;overflow-wrap:anywhere;}
+.admin-plan-edit-card .btn{align-self:flex-start;margin-top:auto;}
+.admin-plan-editor{padding:14px;border:1px solid var(--border,#30343b);border-radius:14px;background:rgba(255,255,255,.02);}
+@media(max-width:600px){.admin-plan-card-grid{grid-template-columns:1fr;}.admin-plan-edit-card{padding:14px;}.location-consent-row{padding:10px!important;}}
+</style>
+</body>
 </html>

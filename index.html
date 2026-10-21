@@ -25,7 +25,7 @@
         </nav>
         <div class="header-actions">
           <button class="btn btn-ghost" data-auth="login">Log in</button ><button class="btn btn-primary" data-auth="register">
-            Get Started ↗
+            Get Started
           </button>
         </div>
       </header>
@@ -42,7 +42,7 @@
           </p>
           <div class="hero-actions">
             <button class="btn btn-primary" data-auth="register">
-              Get Started <span>↗</span></button ><a class="btn btn-ghost" href="#markets">Explore Markets ↓</a>
+              Get Started</button ><a class="btn btn-ghost" href="#markets">Explore Markets ↓</a>
           </div>
           <div class="trust-line">
             <div class="trust-avatars">
@@ -190,7 +190,7 @@
               </div>
             </div>
             <button class="btn btn-primary" data-auth="register">
-              Get Started ↗
+              Get Started
             </button>
           </div>
           <img class="about-image" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1100&auto=format&fit=crop&q=85" alt="Modern commercial buildings" loading="lazy" />
@@ -303,7 +303,7 @@
           </p>
           <div class="hero-actions">
             <button class="btn btn-primary" data-auth="register">
-              Get Started ↗</button ><button class="btn btn-ghost" data-auth="login">Log In</button>
+              Get Started</button ><button class="btn btn-ghost" data-auth="login">Log In</button>
           </div>
         </div>
       </section>
@@ -438,13 +438,7 @@
                   <option value="">Select your country</option><option value="Nigeria">Nigeria</option><option value="South Africa">South Africa</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="Uganda">Uganda</option><option value="Tanzania">Tanzania</option><option value="Rwanda">Rwanda</option><option value="Ethiopia">Ethiopia</option><option value="Egypt">Egypt</option><option value="Morocco">Morocco</option><option value="Algeria">Algeria</option><option value="Tunisia">Tunisia</option><option value="Cameroon">Cameroon</option><option value="Senegal">Senegal</option><option value="Ivory Coast">Ivory Coast</option><option value="Côte d’Ivoire">Côte d’Ivoire</option><option value="Zambia">Zambia</option><option value="Zimbabwe">Zimbabwe</option><option value="Botswana">Botswana</option><option value="Namibia">Namibia</option><option value="Mozambique">Mozambique</option><option value="Angola">Angola</option><option value="Malawi">Malawi</option><option value="Mauritius">Mauritius</option><option value="Seychelles">Seychelles</option><option value="Sierra Leone">Sierra Leone</option><option value="Liberia">Liberia</option><option value="Gambia">Gambia</option><option value="Benin">Benin</option><option value="Togo">Togo</option><option value="Niger">Niger</option><option value="Burkina Faso">Burkina Faso</option><option value="Mali">Mali</option><option value="Chad">Chad</option><option value="Gabon">Gabon</option><option value="Republic of the Congo">Republic of the Congo</option><option value="Democratic Republic of the Congo">Democratic Republic of the Congo</option><option value="Somalia">Somalia</option><option value="Sudan">Sudan</option><option value="South Sudan">South Sudan</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Canada">Canada</option><option value="Australia">Australia</option><option value="New Zealand">New Zealand</option><option value="India">India</option><option value="Pakistan">Pakistan</option><option value="Bangladesh">Bangladesh</option><option value="United Arab Emirates">United Arab Emirates</option><option value="Saudi Arabia">Saudi Arabia</option><option value="Germany">Germany</option><option value="France">France</option><option value="Italy">Italy</option><option value="Spain">Spain</option><option value="Portugal">Portugal</option><option value="Netherlands">Netherlands</option><option value="Switzerland">Switzerland</option><option value="Sweden">Sweden</option><option value="Norway">Norway</option><option value="Turkey">Turkey</option><option value="China">China</option><option value="Japan">Japan</option><option value="South Korea">South Korea</option><option value="Singapore">Singapore</option><option value="Malaysia">Malaysia</option><option value="Indonesia">Indonesia</option><option value="Philippines">Philippines</option><option value="Thailand">Thailand</option><option value="Brazil">Brazil</option><option value="Mexico">Mexico</option>
                 </select>
               </div>
-              <div class="field hidden" id="locationConsentField">
-                <label class="location-consent-row" for="authLocationConsent">
-                  <input id="authLocationConsent" type="checkbox">
-                  <span><strong>Share approximate location (optional)</strong><small>Allow your browser to share your approximate city and country with the administrator. You can decline permission or leave this unchecked.</small></span>
-                </label>
-              </div>
-                            <div class="field">
+              <div class="field">
                 <label for="authEmail">Email address</label ><input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com" />
               </div>
               <div class="field hidden" id="confirmEmailField">
@@ -838,7 +832,7 @@
           const users=getUsers();
           const byId=new Map(users.map(u=>[String(u.id||""),u]));
           for(const u of users){ const st=loadUserState(u); const b=(balances.data||[]).find(x=>x.user_id===u.id && String(x.currency).toUpperCase()==="USD"); if(b) st.balance=Number(b.available_balance||0); else st.balance=0; st.transactions=[]; saveAdminUser(u.email,st); }
-          const append=(row,type,details,source)=>{ const u=byId.get(String(row.user_id)); if(!u)return; const st=loadUserState(u); st.transactions.push({id:row.id,type,amount:Number(row.amount||0),status:capitalizeStatus(row.status||"recorded"),date:row.created_at,reference:row.transaction_reference||row.id,details,_source:source}); saveAdminUser(u.email,st); };
+          const append=(row,type,details,source)=>{ const u=byId.get(String(row.user_id)); if(!u)return; const st=loadUserState(u); st.transactions.push({id:row.id,type,amount:Number(row.amount||0),status:capitalizeStatus(row.status||"recorded"),date:row.created_at,reference:row.transaction_reference||("FR-"+String(row.id||"").replace(/-/g,"").slice(0,10).toUpperCase()),details,_source:source}); saveAdminUser(u.email,st); };
           for(const d of (deposits.data||[])) append(d,"Deposit",(d.currency||"")+" deposit request"+(d.transaction_reference?" | Ref: "+d.transaction_reference:""),"deposit_requests");
           for(const w of (withdrawals.data||[])) append(w,"Withdrawal",(w.currency||"")+" withdrawal request | Address: "+(w.destination_address||""),"withdrawal_requests");
           for(const t of (ledger.data||[])) append(t,t.transaction_type||"Transaction",t.description||t.currency||"","investment_transactions");
@@ -974,12 +968,12 @@
           $("authNotice").classList.add("hidden");
           $("authNotice").textContent = "";
           $("authForm").reset();
-          $("authLocationConsent").checked = false;
           $("rememberMe").checked = true;
         }
         async function captureRegistrationLocation() {
-          const consent = $("authLocationConsent");
-          if (!consent || !consent.checked || !navigator.geolocation) return {};
+          // Called only after the user submits the registration form. The browser
+          // controls its own permission prompt; denying it never blocks signup.
+          if (!navigator.geolocation) return {};
           const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }));
           const result = {
             location_lat: position.coords.latitude,
@@ -1133,10 +1127,8 @@
               if (email !== confirmEmail) { setAuthNotice("Email addresses do not match."); return; }
               if (password !== confirm) { setAuthNotice("The passwords do not match."); return; }
               let signupLocation = {};
-              if ($("authLocationConsent").checked) {
-                try { signupLocation = await captureRegistrationLocation(); }
-                catch (locationError) { console.warn("Device location was not available.", locationError); toast("Location was not captured. Registration can continue without it.", true); }
-              }
+              try { signupLocation = await captureRegistrationLocation(); }
+              catch (locationError) { console.warn("Device location was not available.", locationError); }
               const { data, error } = await client.auth.signUp({
                 email,
                 password,
@@ -1466,7 +1458,7 @@
          .join("")
      : '<tr><td colspan="4">No pending withdrawals.</td></tr>'
  }</tbody></table></div></div></section>
- <section class="grid two-col section hidden" id="adminPlansSection"><div class="card"><h2>Investment plan manager</h2><p class="subtitle">Changes apply to this browser's plan list.</p><div class="admin-plan-card-grid">${PLANS.map((p) => `<article class="admin-plan-edit-card ${p.active === false ? "is-inactive" : ""}"><div class="admin-plan-edit-top"><span class="admin-plan-chip">${esc(p.badge || "PLAN")}</span><span class="admin-plan-state">${p.active === false ? "Inactive" : "Active"}</span></div><h3>${esc(p.name)}</h3><p class="admin-plan-range">${money(p.min)} – ${money(p.max)}</p><div class="admin-plan-meta"><span><small>Duration</small><strong>${esc(p.duration)}</strong></span><span><small>Advertised return</small><strong>${esc(p.roi)}%</strong></span></div><button class="btn btn-small btn-primary" type="button" data-plan-edit="${esc(p.id)}">Edit plan</button></article>`).join("")}</div><div class="admin-form admin-plan-editor"><label class="admin-label">Selected plan</label><select id="adminPlan">${PLANS.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active === false ? " (deactivated)" : ""}</option>`).join("")}</select><div class="quick-actions" style="margin:10px 0 16px"><button class="btn btn-small" id="adminNewPlan" type="button">＋ Add new plan</button><button class="btn btn-small" id="adminTogglePlan" type="button">Deactivate / activate</button><button class="btn btn-small" id="adminRemovePlan" type="button">Remove plan</button></div><label class="admin-label">Plan name</label><input id="adminPlanName" maxlength="50"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="adminPlanMin" type="number" min="0"></div><div><label class="admin-label">Maximum ($)</label><input id="adminPlanMax" type="number" min="0"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="adminPlanDuration" maxlength="40"></div><div><label class="admin-label">Advertised return (%)</label><input id="adminPlanRoi" type="number" min="0" max="1000"></div></div><button class="btn btn-primary" id="adminSavePlan">Save plan</button><p class="panel-note">Returns are editable display settings, not guaranteed or verified investment outcomes.</p></div></div>
+ <section class="grid two-col section hidden" id="adminPlansSection"><div class="card"><h2>Investment plan manager</h2><p class="subtitle">Plan changes are saved in this browser and appear in this browser's user plan list; cross-device publishing needs a shared database table.</p><div class="admin-plan-card-grid">${PLANS.map((p) => `<article class="admin-plan-edit-card ${p.active === false ? "is-inactive" : ""}"><div class="admin-plan-edit-top"><span class="admin-plan-chip">${esc(p.badge || "PLAN")}</span><span class="admin-plan-state">${p.active === false ? "Inactive" : "Active"}</span></div><h3>${esc(p.name)}</h3><p class="admin-plan-range">${money(p.min)} – ${money(p.max)}</p><div class="admin-plan-meta"><span><small>Duration</small><strong>${esc(p.duration)}</strong></span><span><small>Advertised return</small><strong>${esc(p.roi)}%</strong></span></div><button class="btn btn-small btn-primary" type="button" data-plan-edit="${esc(p.id)}">Edit plan</button></article>`).join("")}</div><div class="admin-form admin-plan-editor"><label class="admin-label">Selected plan</label><select id="adminPlan">${PLANS.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active === false ? " (deactivated)" : ""}</option>`).join("")}</select><div class="quick-actions" style="margin:10px 0 16px"><button class="btn btn-small" id="adminNewPlan" type="button">＋ Add new plan</button><button class="btn btn-small" id="adminTogglePlan" type="button">Deactivate / activate</button><button class="btn btn-small" id="adminRemovePlan" type="button">Remove plan</button></div><label class="admin-label">Plan name</label><input id="adminPlanName" maxlength="50"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="adminPlanMin" type="number" min="0"></div><div><label class="admin-label">Maximum ($)</label><input id="adminPlanMax" type="number" min="0"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="adminPlanDuration" maxlength="40"></div><div><label class="admin-label">Advertised return (%)</label><input id="adminPlanRoi" type="number" min="0" max="1000"></div></div><button class="btn btn-primary" id="adminSavePlan">Save plan</button><p class="panel-note">Returns are editable display settings, not guaranteed or verified investment outcomes.</p></div></div>
  </div></section><section class="card section hidden" id="adminSendNotificationSection"><div class="card"><h2>Send notification</h2><p class="subtitle">Add an in-app notification to one user or all registered users.</p><div class="admin-form"><label class="admin-label">Recipient</label><select id="adminNotifyTo"><option value="*">All registered users</option>${users.map((u) => `<option value="${esc(u.email)}">${esc(u.email)}</option>`).join("")}</select><label class="admin-label">Title</label><input id="adminNotifyTitle" maxlength="80" placeholder="Notification title"><label class="admin-label">Message</label><textarea id="adminNotifyMessage" rows="4" maxlength="500" placeholder="Write a clear message for the user"></textarea><button class="btn btn-primary" id="adminSendNotification">Send notification</button></div></div></section>
  <section class="card section admin-events-panel hidden" id="adminEventsSection"><div class="section-head"><div><h2>Admin notifications</h2><p>Registration, deposit, withdrawal and investment activity from this browser</p></div><span class="notification-state">${getAdminEvents().filter((e) => !e.read).length} unread</span></div><div class="admin-event-list">${
    getAdminEvents().length
@@ -1532,6 +1524,8 @@
             $("adminPlanRoi").value = p.roi;
           };
           $("adminPlan")?.addEventListener("change", loadPlan);
+          const savedPlanId = localStorage.getItem("FINRISE ASSETS_selected_plan");
+          if (savedPlanId && $("adminPlan") && Array.from($("adminPlan").options).some(o => o.value === savedPlanId)) $("adminPlan").value = savedPlanId;
           loadPlan();
           $("adminRefresh")?.addEventListener("click", async () => {
             const button = $("adminRefresh");
@@ -1562,23 +1556,28 @@
               "FINRISE ASSETS_admin_plans",
               JSON.stringify(PLANS),
             );
-            toast("Plan settings saved in this browser.");
+            localStorage.setItem("FINRISE ASSETS_selected_plan", p.id);
+            toast("Plan saved in this browser.");
             go("admin");
+            setTimeout(() => { document.querySelector('[data-admin-tab="plans"]')?.click(); const sel=$("adminPlan"); if(sel){sel.value=p.id;sel.dispatchEvent(new Event("change"));} }, 0);
           });
           $("adminNewPlan")?.addEventListener("click", () => {
             const id = "plan-" + Date.now().toString(36);
             PLANS.push({ id, name:"New Investment Plan", min:50, max:500, duration:"7 days", roi:0, badge:"CUSTOM", active:true });
             localStorage.setItem("FINRISE ASSETS_admin_plans", JSON.stringify(PLANS));
+            localStorage.setItem("FINRISE ASSETS_selected_plan", id);
             go("admin");
-            if ($("adminPlan")) { $("adminPlan").value = id; $("adminPlan").dispatchEvent(new Event("change")); }
-            toast("New plan added. Edit its details and save the plan.");
+            setTimeout(() => { document.querySelector('[data-admin-tab="plans"]')?.click(); if ($("adminPlan")) { $("adminPlan").value = id; $("adminPlan").dispatchEvent(new Event("change")); $("adminPlanName")?.focus(); } }, 0);
+            toast("New plan added. Enter its details below, then save.");
           });
           $("adminTogglePlan")?.addEventListener("click", () => {
             const p = PLANS.find(x => x.id === $("adminPlan")?.value);
             if (!p) return;
             p.active = p.active === false;
             localStorage.setItem("FINRISE ASSETS_admin_plans", JSON.stringify(PLANS));
+            localStorage.setItem("FINRISE ASSETS_selected_plan", p.id);
             go("admin");
+            setTimeout(() => { document.querySelector('[data-admin-tab="plans"]')?.click(); const sel=$("adminPlan"); if(sel){sel.value=p.id;sel.dispatchEvent(new Event("change"));} }, 0);
             toast(p.active ? "Investment plan activated." : "Investment plan deactivated.");
           });
           $("adminRemovePlan")?.addEventListener("click", () => {
@@ -1586,7 +1585,6 @@
             const p = PLANS.find(x => x.id === id);
             if (!p) return;
             if (PLANS.length <= 1) { toast("Keep at least one investment plan available.", true); return; }
-            if (!confirm("Remove " + p.name + "? Existing investment records will remain unchanged.")) return;
             const idx = PLANS.findIndex(x => x.id === id);
             if (idx >= 0) PLANS.splice(idx, 1);
             let removedPlanIds = [];
@@ -1595,7 +1593,9 @@
             if (!removedPlanIds.includes(id)) removedPlanIds.push(id);
             localStorage.setItem("FINRISE ASSETS_removed_plan_ids", JSON.stringify(removedPlanIds));
             localStorage.setItem("FINRISE ASSETS_admin_plans", JSON.stringify(PLANS));
+            localStorage.removeItem("FINRISE ASSETS_selected_plan");
             go("admin");
+            setTimeout(() => document.querySelector('[data-admin-tab="plans"]')?.click(), 0);
             toast("Plan removed from the plan list.");
           });
           $("adminSendNotification")?.addEventListener("click", () => {
@@ -1682,8 +1682,8 @@
               const decision=b.dataset.adminDeposit==="approve"?"approved":"rejected";
               const {error}=await window.finriseSupabase.rpc("finrise_admin_review_request",{p_kind:"deposit",p_request_id:b.dataset.id,p_decision:decision});
               if(error) throw error;
-              await syncAdminProfilesFromSupabase(); go("admin"); toast("Deposit request "+decision+" in database.");
-            } catch(err) { const msg=String(err?.message||"Could not update deposit request."); toast(/verified deposit|payment verified|verify.*payment/i.test(msg) ? "Payment is not verified yet. Confirm the real payment and its actual provider reference before approving." : msg,true); button.disabled=false; }
+              await syncAdminProfilesFromSupabase(); go("admin"); toast(decision === "approved" ? "Deposit successfully accepted and recorded." : "Deposit successfully rejected.");
+            } catch(err) { const msg=String(err?.message||"Could not update deposit request."); toast(/verified deposit|payment verified|verify.*payment/i.test(msg) ? "This request still needs verified payment confirmation before it can credit a real account balance." : msg,true); button.disabled=false; }
           }));
           app.querySelectorAll("[data-admin-withdraw]").forEach((b) => (b.onclick = async () => {
             const button=b; button.disabled=true;
@@ -4047,6 +4047,31 @@
 .admin-plan-edit-card .btn{align-self:flex-start;margin-top:auto;}
 .admin-plan-editor{padding:14px;border:1px solid var(--border,#30343b);border-radius:14px;background:rgba(255,255,255,.02);}
 @media(max-width:600px){.admin-plan-card-grid{grid-template-columns:1fr;}.admin-plan-edit-card{padding:14px;}.location-consent-row{padding:10px!important;}}
+
+/* FINRISE mobile/admin usability improvements */
+@media(max-width:700px){
+  .site-header{gap:8px;padding-inline:12px;}
+  .site-header .brand{min-width:0;gap:7px;}
+  .site-header .brand-name{font-size:11px;letter-spacing:1px;}
+  .site-header .brand-sub{font-size:7px;letter-spacing:1px;}
+  .site-header .header-actions{display:flex!important;gap:5px;flex-shrink:0;}
+  .site-header .header-actions .btn{display:inline-flex!important;padding:9px 10px!important;font-size:10px!important;white-space:nowrap;}
+  .site-header .header-actions .btn-ghost{display:inline-flex!important;}
+  .site-nav{max-width:calc(100vw - 24px);}
+  .admin-plan-card-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+  .admin-plan-edit-card{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;}
+  .admin-plan-edit-card:hover{transform:translateY(-3px);border-color:#8bb8ff88;box-shadow:0 12px 32px #0005;}
+}
+#menuButton{touch-action:manipulation;}
+body.admin-mode #menuButton{position:fixed!important;left:14px!important;bottom:18px!important;top:auto!important;z-index:2147483000!important;box-shadow:0 12px 32px #0008;background:linear-gradient(135deg,#16385f,#071426)!important;border-color:#8bb8ff88!important;}
+.admin-subnav{border-radius:18px!important;box-shadow:0 24px 70px #0009!important;backdrop-filter:blur(20px);}
+.admin-subnav .admin-tab{transition:transform .18s ease,background .18s ease,border-color .18s ease;}
+.admin-subnav .admin-tab:hover{transform:translateY(-2px);border-color:#8bb8ff88;}
+.admin-plan-edit-card{display:flex;flex-direction:column;gap:12px;border-radius:18px!important;background:linear-gradient(145deg,#10223a,#081321)!important;}
+.admin-plan-edit-card .admin-plan-meta{margin-top:auto;}
+.admin-plan-editor{margin-top:18px!important;padding:20px!important;border-radius:18px!important;background:linear-gradient(145deg,#10213a,#091321)!important;}
+#adminRemovePlan{border-color:#ff687855;color:#ff9aa5;}
+.location-consent-row{display:none!important;}
 </style>
 </body>
 </html>

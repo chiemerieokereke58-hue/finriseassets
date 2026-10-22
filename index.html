@@ -382,6 +382,7 @@
           </div>
         </div>
       </section>
+      <section class="section-wrap" id="global-community" style="padding-top:36px;padding-bottom:36px"><div class="card glass" style="padding:clamp(22px,4vw,42px);display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap"><div><div class="section-kicker">GLOBAL COMMUNITY</div><h2 class="section-title" style="margin-bottom:8px">Built for a connected world</h2><p class="section-desc">A platform designed to serve users across countries and regions. Availability depends on local rules and supported services.</p></div><div style="min-width:180px;text-align:center;padding:18px;border:1px solid var(--border);border-radius:16px;background:#8bb8ff0b"><strong id="globalReachCounter" style="display:block;font-size:clamp(28px,5vw,42px);color:var(--gold2);font-variant-numeric:tabular-nums">1</strong><span style="font-size:10px;letter-spacing:1.4px;color:var(--muted)">GLOBAL REACH TARGET</span></div></div></section>
       <footer class="site-footer">
         <div style="max-width: 1260px; margin: 0 auto 35px">
           <div class="section-kicker">Ecosystem & market services</div>
@@ -686,7 +687,7 @@
         };
         const PLANS = [
           {
-            id: "starter",
+            id: "8be454ca-61b0-4646-99e1-9e3cea507dfb",
             name: "Starter Plan",
             min: 50,
             max: 99,
@@ -695,7 +696,7 @@
             badge: "STARTER",
           },
           {
-            id: "growth",
+            id: "5c9dbcb8-20ac-478f-ab18-8caf3a9a871f",
             name: "Growth Plan",
             min: 100,
             max: 299,
@@ -704,7 +705,7 @@
             badge: "GROWTH",
           },
           {
-            id: "premium",
+            id: "24b27cde-fc0a-4484-9db3-0da9c9576f7d",
             name: "Premium Plan",
             min: 300,
             max: 499,
@@ -713,7 +714,7 @@
             badge: "PREMIUM",
           },
           {
-            id: "elite",
+            id: "4aa8c68c-2f54-4638-aafb-bf570a8e8775",
             name: "Elite Plan",
             min: 500,
             max: 999,
@@ -722,7 +723,7 @@
             badge: "ELITE",
           },
           {
-            id: "bot",
+            id: "5e12a82e-f257-4a0c-89c3-958c88cbcfa3",
             name: "Bot Trading Plan",
             min: 300,
             max: 3000,
@@ -752,21 +753,66 @@
           },
           prices: { BTC: null, ETH: null, USDT: 1, LTC: null, TRX: null },
         };
+        // Investment plans are shared through Supabase; unrelated site data remains unchanged.
+        let sharedPlansLoadedAt = 0;
+        async function loadSharedPlansFromSupabase(force = false) {
+          const client = window.finriseSupabase;
+          if (!client) return false;
+          if (!force && sharedPlansLoadedAt && Date.now() - sharedPlansLoadedAt < 15000) return true;
+          const { data, error } = await client.from("investment_plans")
+            .select("id,name,description,min_amount,max_amount,return_rate,duration_days,is_active")
+            .order("min_amount", { ascending: true });
+          if (error) throw error;
+          // Keep the original built-in plans if the shared table has not been populated yet.
+          if (!Array.isArray(data) || data.length === 0) { sharedPlansLoadedAt = Date.now(); return true; }
+          const remotePlans = data.map((row) => ({
+            id: String(row.id), name: row.name, description: row.description || "",
+            min: Number(row.min_amount || 0), max: row.max_amount == null ? 0 : Number(row.max_amount),
+            duration: Number(row.duration_days) === 1 ? "24 hours" : `${Number(row.duration_days || 1)} days`,
+            roi: Number(row.return_rate || 0), badge: "INVESTMENT PLAN", active: row.is_active !== false,
+          }));
+          PLANS.splice(0, PLANS.length, ...remotePlans);
+          sharedPlansLoadedAt = Date.now();
+          document.dispatchEvent(new CustomEvent("finrise:plans-updated"));
+          return true;
+        }
+        async function saveSharedPlanToSupabase(plan) {
+          const client = window.finriseSupabase;
+          if (!client) throw new Error("Supabase is not connected.");
+          const match = String(plan.duration || "").match(/([\d.]+)\s*(hour|day)/i);
+          const durationDays = match ? Math.max(1, Math.ceil(Number(match[1]) * (/hour/i.test(match[2]) ? 1/24 : 1))) : 1;
+          const payload = {
+            name: String(plan.name).trim(), description: String(plan.description || ""),
+            min_amount: Number(plan.min), max_amount: Number(plan.max),
+            return_rate: Number(plan.roi), duration_days: durationDays,
+            is_active: plan.active !== false, updated_at: new Date().toISOString()
+          };
+          if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(plan.id || ""))) {
+            payload.id = String(plan.id);
+          }
+          const { error } = await client.from("investment_plans").upsert(payload, { onConflict: payload.id ? "id" : "name" });
+          if (error) throw error;
+          sharedPlansLoadedAt = 0;
+          await loadSharedPlansFromSupabase(true);
+        }
+        async function removeSharedPlanFromSupabase(plan) {
+          const client = window.finriseSupabase;
+          if (!client) throw new Error("Supabase is not connected.");
+          const { error } = await client.from("investment_plans").delete().eq("name", plan.name);
+          if (error) throw error;
+          sharedPlansLoadedAt = 0;
+          await loadSharedPlansFromSupabase(true);
+        }
         try {
-          const savedPlans = JSON.parse(
-            localStorage.getItem("FINRISE ASSETS_admin_plans") || "null",
-          );
-          if (Array.isArray(savedPlans))
-            savedPlans.forEach((sp) => {
-              const p = PLANS.find((x) => x.id === sp.id);
-              if (p) Object.assign(p, sp);
-              else if (sp && sp.id && sp.name) PLANS.push({ ...sp, active: sp.active !== false });
-            });
+          const savedPlans = JSON.parse(localStorage.getItem("FINRISE ASSETS_admin_plans") || "null");
+          if (Array.isArray(savedPlans)) savedPlans.forEach((sp) => {
+            const p = PLANS.find((x) => x.id === sp.id);
+            if (p) Object.assign(p, sp);
+            else if (sp && sp.id && sp.name) PLANS.push({ ...sp, active: sp.active !== false });
+          });
           const removedPlanIds = JSON.parse(localStorage.getItem("FINRISE ASSETS_removed_plan_ids") || "[]");
-          if (Array.isArray(removedPlanIds)) {
-            for (let i = PLANS.length - 1; i >= 0; i--) {
-              if (removedPlanIds.includes(PLANS[i].id)) PLANS.splice(i, 1);
-            }
+          if (Array.isArray(removedPlanIds)) for (let i = PLANS.length - 1; i >= 0; i--) {
+            if (removedPlanIds.includes(PLANS[i].id)) PLANS.splice(i, 1);
           }
         } catch {}
         function clone(x) {
@@ -868,21 +914,34 @@
         async function hydrateUserStateFromSupabase() {
           if (!currentUser?.id || !window.finriseSupabase || !state) return;
           const client = window.finriseSupabase;
-          const [bal, deps, wds, txs] = await Promise.all([
+          // Process this signed-in user's due investments first; the SQL function locks rows to prevent duplicate payouts.
+          const { error: payoutError } = await client.rpc("claim_matured_finrise_investments");
+          if (payoutError) throw payoutError;
+          const [bal, deps, wds, txs, invs] = await Promise.all([
             client.from("user_balances").select("available_balance,currency").eq("user_id", currentUser.id),
             client.from("deposit_requests").select("id,amount,currency,transaction_reference,status,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false}),
             client.from("withdrawal_requests").select("id,amount,currency,destination_address,status,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false}),
-            client.from("investment_transactions").select("id,transaction_type,amount,currency,description,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false})
+            client.from("investment_transactions").select("id,transaction_type,amount,currency,description,created_at").eq("user_id", currentUser.id).order("created_at", {ascending:false}),
+            client.from("finrise_user_investments").select("id,plan_name,principal,return_rate,profit_amount,duration_days,started_at,matures_at,status,paid_at").eq("user_id", currentUser.id).order("started_at", {ascending:false})
           ]);
-          for (const result of [bal,deps,wds,txs]) if (result.error) throw result.error;
+          for (const result of [bal,deps,wds,txs,invs]) if (result.error) throw result.error;
           const usdBalanceRow = (bal.data || []).find(row => String(row.currency || "").trim().toUpperCase() === "USD");
           state.balance = Number(usdBalanceRow?.available_balance || 0);
           const remote = [];
           for (const d of (deps.data || [])) remote.push({id:d.id,type:"Deposit",amount:Number(d.amount),status:capitalizeStatus(d.status),date:d.created_at,reference:d.transaction_reference || d.id,details:(d.currency || "")+" deposit request | Ref: "+(d.transaction_reference||("FR-DP-"+String(d.id||"").replace(/-/g,"").slice(0,10).toUpperCase())),_source:"deposit_requests"});
           for (const w of (wds.data || [])) remote.push({id:w.id,type:"Withdrawal",amount:Number(w.amount),status:capitalizeStatus(w.status),date:w.created_at,reference:w.transaction_reference || ("FR-WD-"+String(w.id||"").replace(/-/g,"").slice(0,10).toUpperCase()),details:(w.currency || "")+" payout request | Address: "+(w.destination_address||""),_source:"withdrawal_requests"});
           for (const t of (txs.data || [])) { const kind=String(t.transaction_type||"Transaction").toLowerCase(); if(kind==="deposit"||kind==="withdrawal") continue; remote.push({id:t.id,type:t.transaction_type || "Transaction",amount:Number(t.amount),status:"Recorded",date:t.created_at,reference:t.id,details:t.description || t.currency || "",_source:"investment_transactions"}); }
-          const localOnly = (state.transactions || []).filter(t => !["Deposit","Withdrawal"].includes(t.type) && !t._source && !remote.some(r => r.id === t.id));
+          const localOnly = (state.transactions || []).filter(t => !["Deposit","Withdrawal","Investment","Investment Payout"].includes(t.type) && !t._source && !remote.some(r => r.id === t.id));
           state.transactions = [...remote, ...localOnly].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+          state.investments = (invs.data || []).map(inv => ({
+            id: inv.id, planId: inv.id, planName: inv.plan_name,
+            amount: Number(inv.principal), roiExample: Number(inv.return_rate),
+            profitAmount: Number(inv.profit_amount), duration: Number(inv.duration_days) === 1 ? "24 hours" : `${Number(inv.duration_days)} days`,
+            date: inv.started_at, maturesAt: inv.matures_at, paidAt: inv.paid_at,
+            status: inv.status === "completed" ? "Completed" : "Active"
+          }));
+          state.invested = state.investments.filter(inv => inv.status !== "Completed").reduce((sum, inv) => sum + Number(inv.amount || 0), 0);
+          state.realizedProfit = (invs.data || []).filter(inv => inv.status === "completed").reduce((sum, inv) => sum + Number(inv.profit_amount || 0), 0);
           saveState();
         }
         function capitalizeStatus(value) {
@@ -1122,7 +1181,8 @@
           enterDashboard();
           toast("Account created on this device.");
         }
-        function enterDashboard() {
+        async function enterDashboard() {
+          try { await loadSharedPlansFromSupabase(true); } catch (err) { console.warn("Shared investment plans could not be loaded:", err); }
           showView("dashboard");
           refreshAvatars();
           go("dashboard");
@@ -1212,6 +1272,7 @@
               state = null;
               localStorage.setItem(SESSION_KEY, JSON.stringify({ email, admin: true }));
               await syncAdminProfilesFromSupabase();
+              try { await loadSharedPlansFromSupabase(true); } catch (err) { console.warn("Shared investment plans could not be loaded:", err); }
               showView("dashboard");
               go("admin");
               toast("Administrator signed in securely.");
@@ -1357,13 +1418,17 @@
         function buyPlan(id) {
           const p = PLANS.find((x) => x.id === id);
           if (!p) return;
+          if (!currentUser?.id || !window.finriseSupabase) {
+            toast("Please sign in with your Supabase account first.", true);
+            return;
+          }
           openModal(
             "Preview " + p.name,
-            `<p>This records a local portfolio entry only. No money is transferred or invested.</p><div class="field"><label>Amount (USD)</label><input id="planAmount" type="number" min="${p.min}" max="${p.max}" placeholder="${p.min}"></div><p>Allowed amount: ${money(p.min)}–${money(p.max)}. Available balance: ${money(state.balance)}.</p><div class="quick-actions"><button class="btn btn-primary" id="confirmPlan">Add investment record</button><button class="btn" data-close-modal>Cancel</button></div>`,
+            `<p>Your investment will be recorded in Supabase. The plan's saved percentage and duration will be used.</p><div class="field"><label>Amount (USD)</label><input id="planAmount" type="number" min="${p.min}" max="${p.max}" step="0.01" placeholder="${p.min}"></div><p>Allowed amount: ${money(p.min)}–${money(p.max)}. Available balance: ${money(state.balance)}.</p><div class="quick-actions"><button class="btn btn-primary" id="confirmPlan">Confirm Investment</button><button class="btn" data-close-modal>Cancel</button></div>`,
           );
-          $("confirmPlan").onclick = () => {
+          $("confirmPlan").onclick = async () => {
             const n = Number($("planAmount").value);
-            if (!Number.isFinite(n) || n < p.min || n > p.max) {
+            if (!Number.isFinite(n) || n < p.min || (p.max > 0 && n > p.max) || n <= 0) {
               toast("Enter an amount within the plan range.", true);
               return;
             }
@@ -1371,37 +1436,51 @@
               toast("Your available balance is too low.", true);
               return;
             }
-            state.balance = Math.round((state.balance - n) * 100) / 100;
-            state.invested += n;
-            state.investments.unshift({
-              id: uid(),
-              planId: p.id,
-              planName: p.name,
-              amount: n,
-              roiExample: p.roi,
-              duration: p.duration,
-              date: new Date().toISOString(),
-              status: "Active",
-            });
-            addTransaction("Investment", n, "Confirmed", p.name);
-            const inv = state.investments[0];
-            addAdminEvent(
-              "investment",
-              "New active investment",
-              `${state.name || currentUser.email} placed an investment in ${p.name}.`,
-              currentUser.email,
-              {
-                amount: n,
-                planName: p.name,
-                duration: p.duration,
-                investmentId: inv?.id,
-                date: inv?.date,
-              },
-            );
-            saveState();
-            closeModal();
-            go("active");
-            toast("Investment record added.");
+            const button = $("confirmPlan");
+            button.disabled = true;
+            button.textContent = "Processing…";
+            try {
+              const client = window.finriseSupabase;
+              // Older built-in plans use slugs like "starter"; the database RPC requires a UUID.
+              // Resolve the selected plan to its real Supabase row before opening the investment.
+              let databasePlanId = p.id;
+              const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(databasePlanId));
+              if (!isUuid) {
+                const { data: matchedPlans, error: lookupError } = await client
+                  .from("investment_plans")
+                  .select("id,name,min_amount,max_amount,return_rate,duration_days,is_active")
+                  .ilike("name", String(p.name).trim())
+                  .limit(1);
+                if (lookupError) throw lookupError;
+                if (!matchedPlans || !matchedPlans.length) {
+                  throw new Error("This plan is not saved in Supabase yet. Run the investment-plan setup SQL, refresh the page, and try again.");
+                }
+                const savedPlan = matchedPlans[0];
+                if (savedPlan.is_active === false) throw new Error("This investment plan is currently unavailable.");
+                databasePlanId = savedPlan.id;
+              }
+              const { data, error } = await client.rpc("open_finrise_investment", {
+                p_plan_id: databasePlanId,
+                p_amount: n
+              });
+              if (error) throw error;
+              await hydrateUserStateFromSupabase();
+              const inv = Array.isArray(data) ? data[0] : data;
+              addAdminEvent(
+                "investment", "New active investment",
+                `${state.name || currentUser.email} placed an investment in ${p.name}.`,
+                currentUser.email,
+                { amount: n, planName: p.name, duration: p.duration, investmentId: inv?.id, date: inv?.started_at || new Date().toISOString() }
+              );
+              closeModal();
+              go("trading");
+              toast("Successfully placed a trade with FINRISE ASSETS. You can monitor your trade in Trading.");
+            } catch (err) {
+              console.error("Investment creation failed:", err);
+              toast(err?.message || "Could not create investment. Check Supabase setup.", true);
+              button.disabled = false;
+              button.textContent = "Confirm Investment";
+            }
           };
         }
         function addTransaction(type, amount, status, details = "") {
@@ -1496,7 +1575,7 @@
          .join("")
      : '<tr><td colspan="4">No pending withdrawals.</td></tr>'
  }</tbody></table></div></div></section>
- <section class="grid two-col section hidden" id="adminPlansSection"><div class="card"><h2>Investment plan manager</h2><p class="subtitle">Changes apply to this browser's plan list.</p><div class="admin-form"><label class="admin-label">Existing plan</label><select id="adminPlan">${PLANS.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active === false ? " (deactivated)" : ""}</option>`).join("")}</select><div class="quick-actions" style="margin:10px 0 16px"><button class="btn btn-small" id="adminNewPlan" type="button">＋ Add new plan</button><button class="btn btn-small" id="adminTogglePlan" type="button">Deactivate / activate</button><button class="btn btn-small" id="adminRemovePlan" type="button">Remove plan</button></div><label class="admin-label">Plan name</label><input id="adminPlanName" maxlength="50"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="adminPlanMin" type="number" min="0"></div><div><label class="admin-label">Maximum ($)</label><input id="adminPlanMax" type="number" min="0"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="adminPlanDuration" maxlength="40"></div><div><label class="admin-label">Advertised return (%)</label><input id="adminPlanRoi" type="number" min="0" max="1000"></div></div><button class="btn btn-primary" id="adminSavePlan">Save plan</button><p class="panel-note">Returns are editable display settings, not guaranteed or verified investment outcomes.</p></div></div>
+ <section class="grid two-col section hidden" id="adminPlansSection"><div class="card"><h2>Investment plan manager</h2><p class="subtitle">Changes are shared with users through Supabase.</p><div class="admin-form"><label class="admin-label">Existing plan</label><select id="adminPlan">${PLANS.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active === false ? " (deactivated)" : ""}</option>`).join("")}</select><div class="quick-actions" style="margin:10px 0 16px"><button class="btn btn-small" id="adminNewPlan" type="button">＋ Add new plan</button><button class="btn btn-small" id="adminTogglePlan" type="button">Deactivate / activate</button><button class="btn btn-small" id="adminRemovePlan" type="button">Remove plan</button></div><label class="admin-label">Plan name</label><input id="adminPlanName" maxlength="50"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="adminPlanMin" type="number" min="0"></div><div><label class="admin-label">Maximum ($)</label><input id="adminPlanMax" type="number" min="0"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="adminPlanDuration" maxlength="40"></div><div><label class="admin-label">Advertised return (%)</label><input id="adminPlanRoi" type="number" min="0" max="1000"></div></div><button class="btn btn-primary" id="adminSavePlan">Save plan</button><p class="panel-note">Returns are editable display settings, not guaranteed or verified investment outcomes.</p></div></div>
  </div></section><section class="card section hidden" id="adminSendNotificationSection"><div class="card"><h2>Send notification</h2><p class="subtitle">Add an in-app notification to one user or all registered users.</p><div class="admin-form"><label class="admin-label">Recipient</label><select id="adminNotifyTo"><option value="*">All registered users</option>${users.map((u) => `<option value="${esc(u.email)}">${esc(u.email)}</option>`).join("")}</select><label class="admin-label">Title</label><input id="adminNotifyTitle" maxlength="80" placeholder="Notification title"><label class="admin-label">Message</label><textarea id="adminNotifyMessage" rows="4" maxlength="500" placeholder="Write a clear message for the user"></textarea><button class="btn btn-primary" id="adminSendNotification">Send notification</button></div></div></section>
  <section class="card section admin-events-panel hidden" id="adminEventsSection"><div class="section-head"><div><h2>Admin notifications</h2><p>Registration, deposit, withdrawal and investment activity from this browser</p></div><span class="notification-state">${getAdminEvents().filter((e) => !e.read).length} unread</span></div><div class="admin-event-list">${
    getAdminEvents().length
@@ -1576,57 +1655,51 @@
               if (button) { button.disabled = false; button.textContent = "Refresh"; }
             }
           });
-          $("adminSavePlan")?.addEventListener("click", () => {
+          $("adminSavePlan")?.addEventListener("click", async () => {
             const p = PLANS.find((x) => x.id === $("adminPlan").value),
-              name = $("adminPlanName").value.trim(),
-              min = Number($("adminPlanMin").value),
-              max = Number($("adminPlanMax").value),
-              duration = $("adminPlanDuration").value.trim(),
+              name = $("adminPlanName").value.trim(), min = Number($("adminPlanMin").value),
+              max = Number($("adminPlanMax").value), duration = $("adminPlanDuration").value.trim(),
               roi = Number($("adminPlanRoi").value);
-            if (!p || !name || !duration || min < 0 || max < min || roi < 0) {
-              toast("Check the plan details.", true);
-              return;
+            if (!p || !name || !duration || !Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max < min || !Number.isFinite(roi) || roi < 0) {
+              toast("Check the plan details.", true); return;
             }
-            Object.assign(p, { name, min, max, duration, roi });
-            localStorage.setItem(
-              "FINRISE ASSETS_admin_plans",
-              JSON.stringify(PLANS),
-            );
-            toast("Plan settings saved in this browser.");
-            go("admin");
+            const button = $("adminSavePlan"); if (button) { button.disabled = true; button.textContent = "Saving…"; }
+            try {
+              Object.assign(p, { name, min, max, duration, roi });
+              await saveSharedPlanToSupabase(p);
+              toast("Plan saved to Supabase and shared with users."); go("admin");
+            } catch (err) { toast(err.message || "Could not save the shared plan. Check Supabase permissions.", true); }
+            finally { if (button) { button.disabled = false; button.textContent = "Save plan"; } }
           });
           $("adminNewPlan")?.addEventListener("click", () => {
             const id = "plan-" + Date.now().toString(36);
             PLANS.push({ id, name:"New Investment Plan", min:50, max:500, duration:"7 days", roi:0, badge:"CUSTOM", active:true });
-            localStorage.setItem("FINRISE ASSETS_admin_plans", JSON.stringify(PLANS));
             go("admin");
             if ($("adminPlan")) { $("adminPlan").value = id; $("adminPlan").dispatchEvent(new Event("change")); }
-            toast("New plan added. Edit its details and save the plan.");
+            toast("New plan draft created. Edit it and choose Save plan to publish it.");
           });
-          $("adminTogglePlan")?.addEventListener("click", () => {
-            const p = PLANS.find(x => x.id === $("adminPlan")?.value);
-            if (!p) return;
-            p.active = p.active === false;
-            localStorage.setItem("FINRISE ASSETS_admin_plans", JSON.stringify(PLANS));
-            go("admin");
-            toast(p.active ? "Investment plan activated." : "Investment plan deactivated.");
+          $("adminTogglePlan")?.addEventListener("click", async () => {
+            const p = PLANS.find(x => x.id === $("adminPlan")?.value); if (!p) return;
+            const wasActive = p.active !== false;
+            try {
+              if (wasActive) {
+                const { error } = await window.finriseSupabase.from("investment_plans").update({ is_active: false, updated_at: new Date().toISOString() }).eq("name", p.name);
+                if (error) throw error;
+                p.active = false;
+              } else { p.active = true; await saveSharedPlanToSupabase(p); }
+              sharedPlansLoadedAt = 0; await loadSharedPlansFromSupabase(true); go("admin");
+              toast(p.active ? "Investment plan activated for users." : "Investment plan deactivated for users.");
+            } catch (err) { toast(err.message || "Could not update the shared plan.", true); }
           });
-          $("adminRemovePlan")?.addEventListener("click", () => {
-            const id = $("adminPlan")?.value;
-            const p = PLANS.find(x => x.id === id);
+          $("adminRemovePlan")?.addEventListener("click", async () => {
+            const id = $("adminPlan")?.value, p = PLANS.find(x => x.id === id);
             if (!p) return;
             if (PLANS.length <= 1) { toast("Keep at least one investment plan available.", true); return; }
-            if (!confirm("Remove " + p.name + "? Existing investment records will remain unchanged.")) return;
-            const idx = PLANS.findIndex(x => x.id === id);
-            if (idx >= 0) PLANS.splice(idx, 1);
-            let removedPlanIds = [];
-            try { removedPlanIds = JSON.parse(localStorage.getItem("FINRISE ASSETS_removed_plan_ids") || "[]"); } catch {}
-            if (!Array.isArray(removedPlanIds)) removedPlanIds = [];
-            if (!removedPlanIds.includes(id)) removedPlanIds.push(id);
-            localStorage.setItem("FINRISE ASSETS_removed_plan_ids", JSON.stringify(removedPlanIds));
-            localStorage.setItem("FINRISE ASSETS_admin_plans", JSON.stringify(PLANS));
-            go("admin");
-            toast("Plan removed from the plan list.");
+            if (!confirm("Remove " + p.name + " from the shared plan list? Existing investment records will remain unchanged.")) return;
+            try {
+              await removeSharedPlanFromSupabase(p);
+              toast("Plan removed from the shared plan list."); go("admin");
+            } catch (err) { toast(err.message || "Could not remove the shared plan.", true); }
           });
           $("adminSendNotification")?.addEventListener("click", () => {
             const recipient = $("adminNotifyTo").value,
@@ -1849,8 +1922,8 @@
                               Math.floor(((Date.now() - start) / ms) * 100),
                             ),
                           ),
-                          done = progress >= 100;
-                        return `<article class="invest-card"><div class="section-head"><div><span class="plan-badge">${esc(inv.planName || "Investment")}</span><h2 style="margin-top:12px">${money(inv.amount)}</h2><p class="subtitle">Started ${dateText(inv.date)} · Duration ${esc(inv.duration || "24 hours")}</p></div><span class="status">${done ? "Trade completed successfully" : "Active · " + progress + "%"}</span></div><div class="invest-progress"><span style="width:${progress}%"></span></div><div class="market-row"><small class="muted">Completion progress</small><strong class="gold">${progress}%</strong></div>${done ? '<p class="gold" style="font-size:12px;margin-top:12px">✓ Trade completed successfully</p>' : '<p class="panel-note">Progress is based on the listed duration and this device’s clock.</p>'}</article>`;
+                          done = inv.status === "Completed" || progress >= 100;
+                        return `<article class="invest-card"><div class="section-head"><div><span class="plan-badge">${esc(inv.planName || "Investment")}</span><h2 style="margin-top:12px">${money(inv.amount)}</h2><p class="subtitle">Started ${dateText(inv.date)} · Duration ${esc(inv.duration || "24 hours")}</p></div><span class="status">${done ? "Trade completed successfully" : "Active · " + progress + "%"}</span></div><div class="invest-progress"><span style="width:${progress}%"></span></div><div class="market-row"><small class="muted">Completion progress</small><strong class="gold">${progress}%</strong></div>${done ? `<p class="gold" style="font-size:12px;margin-top:12px">✓ Investment completed · Profit: ${money(inv.profitAmount || 0)} · Principal plus profit returned to available balance when maturity was processed.</p>` : `<p class="panel-note">Maturity: ${dateText(inv.maturesAt || new Date(start + ms).toISOString())}. Due payouts are processed when your signed-in dashboard refreshes.</p>`}</article>`;
                       })
                       .join("")
                   : '<div class="card empty-state">No investments yet. Choose an investment plan to begin.</div>'
@@ -2044,7 +2117,10 @@
                 .split(/\\s+/)[0]
                 .slice(0, 3)
                 .toLowerCase();
-              const ownCode = getUsers().find(u => u.email.toLowerCase() === currentUser.email.toLowerCase())?.referralCode || ("ref-" + (first || "use"));
+              const referralUser = getUsers().find(u => String(u.email || "").toLowerCase() === String(currentUser.email || "").toLowerCase());
+              const storedCode = referralUser?.referralCode || currentUser?.referralCode || currentUser?.user_metadata?.referral_code || "";
+              const accountToken = String(currentUser?.id || currentUser?.email || state.email || "user").replace(/[^a-z0-9]/gi, "").slice(-10).toUpperCase();
+              const ownCode = String(storedCode || ("FR" + (accountToken || "USER"))).trim();
               const referralURL = location.origin + location.pathname + "?ref=" + encodeURIComponent(ownCode);
               return `${heading("Referral Programme", "Track invitations and review recorded referral activity.")}<section class="grid two-col"><div class="card referral-hero"><span class="plan-badge">FINRISE ASSETS PARTNERS</span><h2 class="plan-name">Grow your network.</h2><p class="subtitle">Share your personal referral link with people who may be interested in the platform.</p><div class="ref-commission">10<span>%</span></div><div class="stat-foot">STATED REFERRAL COMMISSION RATE</div><div class="divider"></div><p class="stat-label">Your personal referral link</p><div class="deposit-address" id="refLink">${esc(referralURL)}</div><button class="btn btn-primary" id="copyReferral" style="margin-top:13px">Copy referral link ↗</button></div><div class="card"><div class="stat-top"><span class="stat-label">Available referral balance</span><span class="stat-icon">♧</span></div><div class="stat-value" id="referralBalance">${money(state.referralEarnings || 0)}</div><p class="subtitle">Balance reflects entries recorded in this account.</p><button class="btn btn-primary referral-transfer" id="transferReferral" style="width:100%;margin-top:18px">Transfer to available balance ↓</button><div class="divider"></div><div class="market-row"><span class="muted">Referral sign-ups</span><strong>${(state.referrals || []).length}</strong></div><div class="market-row"><span class="muted">Commission rate</span><strong class="gold">10%</strong></div></div></section><section class="card section"><div class="section-head"><div><h2 style="font-size:17px">Referral history</h2><p>Invitations and commission entries recorded for this account.</p></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Referral</th><th>Activity</th><th>Commission</th><th>Status</th></tr></thead><tbody>${(state.referrals || []).length ? (state.referrals || []).map((r) => `<tr><td>${dateText(r.date || r.createdAt || new Date().toISOString())}</td><td>${esc(r.name || r.email || r.username || "Referral")}</td><td>${esc(r.activity || "Registration")}</td><td>${money(r.commission || 0)}</td><td><span class="status ${r.status === "confirmed" ? "confirmed" : ""}">${esc(r.status || "Recorded")}</span></td></tr>`).join("") : '<tr><td colspan="5"><div class="empty-state">No referral activity has been recorded yet.</div></td></tr>'}</tbody></table></div></section>`;
             }
@@ -3020,6 +3096,7 @@
               state = null;
               localStorage.setItem(SESSION_KEY, JSON.stringify({ email, admin: true }));
               await syncAdminProfilesFromSupabase();
+              try { await loadSharedPlansFromSupabase(true); } catch (err) { console.warn("Shared investment plans could not be loaded:", err); }
               showView("dashboard");
               go("admin");
               return;
@@ -3052,7 +3129,79 @@
           }
         })();
       })();
-    </script>    <button id="fr-support-launch" type="button" aria-label="Open support chat" title="Chat with support" >
+    </script>
+<script>
+/* FINRISE ASSETS admin workflow repairs: modal plan editor, persistent plan IDs, logout, reactivation. */
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function toastMsg(message, error=false){ if(typeof window.toast==='function') window.toast(message,error); else { const n=document.createElement('div'); n.textContent=message; n.style.cssText='position:fixed;z-index:2147483647;bottom:24px;left:16px;right:16px;padding:14px;border-radius:12px;background:#10233a;color:#fff;border:1px solid '+(error?'#d66':'#7ca9e8');document.body.appendChild(n);setTimeout(()=>n.remove(),5000); } }
+  function plans(){ return window.PLANS || (typeof PLANS!=='undefined'?PLANS:[]); }
+  function openPlanModal(plan, isNew){
+    const p = plan || {id: (crypto.randomUUID ? crypto.randomUUID() : 'plan-'+Date.now()), name:'', min:50, max:500, duration:'7 days', roi:0, active:true, badge:'CUSTOM'};
+    window.finriseOpenPlanModal = openPlanModal;
+    const modal = $('modal'), backdrop = $('modalBackdrop');
+    if(!modal || !backdrop){ toastMsg('Admin modal is unavailable. Refresh the page and try again.',true); return; }
+    modal.innerHTML = `<h2>${isNew?'Add investment plan':'Edit investment plan'}</h2><p class="subtitle">Save changes to share this plan with users.</p><div class="admin-form"><label class="admin-label">Plan name</label><input id="frPlanName" maxlength="50" value="${esc(p.name)}"><div class="account-subgrid"><div><label class="admin-label">Minimum ($)</label><input id="frPlanMin" type="number" min="0" step="0.01" value="${Number(p.min)||0}"></div><div><label class="admin-label">Maximum ($)</label><input id="frPlanMax" type="number" min="0" step="0.01" value="${Number(p.max)||0}"></div></div><div class="account-subgrid"><div><label class="admin-label">Duration</label><input id="frPlanDuration" maxlength="40" value="${esc(p.duration||'1 day')}"></div><div><label class="admin-label">Advertised return (%)</label><input id="frPlanRoi" type="number" min="0" max="1000" step="0.01" value="${Number(p.roi)||0}"></div></div><div class="quick-actions"><button class="btn btn-primary" id="frPlanSave">${isNew?'Create plan':'Confirm edit'}</button><button class="btn" id="frPlanCancel">Cancel</button></div></div>`;
+    backdrop.classList.add('show'); backdrop.style.display='flex'; modal.style.display='block';
+    const close=()=>{backdrop.classList.remove('show');backdrop.style.display='none';modal.style.display='';};
+    $('frPlanCancel').onclick=close;
+    $('frPlanSave').onclick=async()=>{
+      const name=$('frPlanName').value.trim(), min=Number($('frPlanMin').value), max=Number($('frPlanMax').value), duration=$('frPlanDuration').value.trim(), roi=Number($('frPlanRoi').value);
+      if(!name||!duration||!Number.isFinite(min)||!Number.isFinite(max)||min<0||max<min||!Number.isFinite(roi)||roi<0){toastMsg('Check the plan details.',true);return;}
+      const b=$('frPlanSave'); b.disabled=true;b.textContent='Saving…';
+      try{
+        const client=window.finriseSupabase;if(!client)throw new Error('Supabase is not connected.');
+        const match=duration.match(/([\d.]+)\s*(hour|day)/i); const days=match?Math.max(1,Math.ceil(Number(match[1])*(/hour/i.test(match[2])?1/24:1))):1;
+        const payload={name,description:String(p.description||''),min_amount:min,max_amount:max,return_rate:roi,duration_days:days,is_active:p.active!==false,updated_at:new Date().toISOString()};
+        let query;
+        if(!isNew && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(p.id))){
+          query=client.from('investment_plans').update(payload).eq('id',p.id);
+        } else {
+          query=client.from('investment_plans').insert(payload);
+        }
+        const {data,error}=await query.select('id,name,description,min_amount,max_amount,return_rate,duration_days,is_active').single();
+        if(error)throw error;
+        p.id=data.id;p.name=data.name;p.description=data.description||'';p.min=Number(data.min_amount);p.max=Number(data.max_amount);p.roi=Number(data.return_rate);p.duration=Number(data.duration_days)===1?'24 hours':`${data.duration_days} days`;p.active=data.is_active!==false;
+        close();
+        if(typeof window.loadSharedPlansFromSupabase==='function') await window.loadSharedPlansFromSupabase(true);
+        document.dispatchEvent(new CustomEvent('finrise:plans-updated'));
+        const grid=$('frPremiumPlanGrid'); if(grid) grid.dispatchEvent(new Event('finrise:redraw'));
+        toastMsg(isNew?'Successfully added investment plan.':'Successfully edited investment plan.');
+      }catch(e){console.error('Plan save failed',e);toastMsg(e.message||'Could not save plan. Check Supabase permissions.',true);b.disabled=false;b.textContent=isNew?'Create plan':'Confirm edit';}
+    };
+  }
+  // Capture before legacy handlers so the modal editor is the single plan workflow.
+  document.addEventListener('click',function(e){
+    const add=e.target.closest('#adminNewPlan');
+    const save=e.target.closest('#adminSavePlan');
+    const edit=e.target.closest('[data-fr-edit-plan]');
+    if(add){e.preventDefault();e.stopImmediatePropagation();openPlanModal(null,true);return;}
+    if(edit){e.preventDefault();e.stopImmediatePropagation();const id=edit.getAttribute('data-fr-edit-plan');const p=plans().find(x=>String(x.id)===String(id));if(p)openPlanModal(p,false);else toastMsg('Plan details could not be loaded. Refresh plans and try again.',true);return;}
+    if(save){e.preventDefault();e.stopImmediatePropagation();const id=$('adminPlan')?.value;const p=plans().find(x=>String(x.id)===String(id));if(p)openPlanModal(p,false);return;}
+    const logout=e.target.closest('#adminMenuLogout');
+    if(logout){e.preventDefault();e.stopImmediatePropagation();(async()=>{try{if(window.finriseSupabase?.auth)await window.finriseSupabase.auth.signOut();}catch(err){console.warn('Supabase sign-out:',err);}try{localStorage.removeItem('FINRISE_ASSETS_session');localStorage.removeItem('FINRISE_ASSETS_current_user');sessionStorage.clear();}catch(_){}location.reload();})();}
+  },true);
+  // Reactivation updates the server-side active flag and local app status; never attempts to change passwords.
+  document.addEventListener('click',async function(e){
+    const b=e.target.closest('[data-admin-reactivate]');if(!b)return;
+    e.preventDefault();e.stopImmediatePropagation();const email=b.getAttribute('data-admin-reactivate');const client=window.finriseSupabase;
+    b.disabled=true;b.textContent='Activating…';
+    try{
+      if(client){
+        const {data:admin,error:adminErr}=await client.rpc('is_finrise_admin');if(adminErr)throw adminErr;if(admin!==true)throw new Error('Administrator access required.');
+        const {error}=await client.rpc('admin_reactivate_finrise_profile',{p_email:email});if(error)throw error;
+      }
+      const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&/user/i.test(k)&&k.toLowerCase().includes(email.toLowerCase()))keys.push(k);}
+      keys.forEach(k=>{try{const v=JSON.parse(localStorage.getItem(k));if(v&&typeof v==='object'){v.isDeactivated=false;delete v.deactivatedAt;localStorage.setItem(k,JSON.stringify(v));}}catch{}});
+      if(typeof window.adminUserState==='function'&&typeof window.adminSaveUser==='function'){const x=window.adminUserState(email);if(x){x.st.isDeactivated=false;delete x.st.deactivatedAt;window.adminSaveUser(email,x.st);}}
+      if(typeof window.go==='function')window.go('admin');toastMsg('Successfully activated user. They can now sign in if their login credentials are valid.');
+    }catch(err){console.error('Reactivation failed',err);toastMsg(err.message||'Could not reactivate user.',true);b.disabled=false;b.textContent='Reactivate';}
+  },true);
+})();
+</script>
+
+    <button id="fr-support-launch" type="button" aria-label="Open support chat" title="Chat with support" >
       <span class="fr-chat-symbol" aria-hidden="true"></span ><span class="fr-live-dot" aria-hidden="true"></span>
     </button>
     <section id="fr-support-panel" aria-label="Customer support chat">
@@ -3919,8 +4068,17 @@
 
   function isAdminWorkspace() {
     var session = readSession();
-    return !!(session && (session.admin === true ||
-      String(session.role || '').toLowerCase() === 'admin'));
+    var sessionIsAdmin = !!(session && (session.admin === true ||
+      String(session.role || '').toLowerCase() === 'admin' ||
+      String(session.user_role || '').toLowerCase() === 'admin'));
+    var adminSubnav = document.getElementById('adminSubnav');
+    var adminHero = document.getElementById('adminOverviewHero');
+    var adminUi = !!((adminSubnav && adminSubnav.getClientRects().length) ||
+      (adminHero && adminHero.getClientRects().length) ||
+      document.body.classList.contains('admin-mode') ||
+      document.body.classList.contains('admin-workspace') ||
+      /(?:^|[#/?])admin(?:[/?&=]|$)/i.test(String(location.hash || '') + String(location.pathname || '')));
+    return sessionIsAdmin || adminUi;
   }
 
   function hideWidgetForAdmin() {
@@ -4109,13 +4267,13 @@
  const $=id=>document.getElementById(id);
  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const planKey='FINRISE ASSETS_admin_plans';
- function plans(){try{const p=JSON.parse(localStorage.getItem(planKey)||'[]');return Array.isArray(p)?p:[]}catch(_){return []}}
+ function plans(){try{if(typeof PLANS!=='undefined'&&Array.isArray(PLANS)&&PLANS.length)return PLANS;if(Array.isArray(window.PLANS)&&window.PLANS.length)return window.PLANS;const p=JSON.parse(localStorage.getItem(planKey)||'[]');return Array.isArray(p)?p:[]}catch(_){return []}}
  function enhancePlans(){
   const section=$('adminPlansSection'); if(!section||section.dataset.premiumPlans==='1')return;
   const form=section.querySelector('.admin-form'); const select=$('adminPlan'); if(!form||!select)return;
   section.dataset.premiumPlans='1';
   const intro=section.querySelector('.card > h2'); if(intro){intro.textContent='✦ Investment Plan Studio';}
-  const sub=section.querySelector('.subtitle'); if(sub)sub.textContent='Edit each plan in its own premium card. Changes are saved in this browser, so other devices will not receive them unless plans are connected to shared database storage.';
+  const sub=section.querySelector('.subtitle'); if(sub)sub.textContent='Manage plans shared through your Supabase investment_plans table.';
   const grid=document.createElement('div');grid.className='fr-premium-plan-grid';grid.id='frPremiumPlanGrid';
   form.insertAdjacentElement('beforebegin',grid);
   form.classList.add('fr-plan-editor');
@@ -4126,9 +4284,11 @@
    const safeList=list.length?list:Array.from(select.options).map(o=>({id:o.value,name:o.textContent.replace(/ \(deactivated\)$/,''),active:!o.textContent.includes('(deactivated)')}));
    grid.innerHTML=safeList.map((p,i)=>{const active=p.active!==false;return `<article class="fr-plan-card ${active?'is-active':'is-off'}" style="--card-delay:${Math.min(i,8)*55}ms"><div class="fr-plan-card-top"><span class="fr-plan-icon">${['✦','◈','⬡','♛','✧'][i%5]}</span><span class="fr-plan-status ${active?'on':'off'}"><i></i>${active?'ACTIVE':'DEACTIVATED'}</span></div><div class="fr-plan-badge">${esc(p.badge||'INVESTMENT PLAN')}</div><h3>${esc(p.name||'Investment Plan')}</h3><div class="fr-plan-range"><small>Investment range</small><strong>$${Number(p.min||0).toLocaleString()} – $${Number(p.max||0).toLocaleString()}</strong></div><div class="fr-plan-stats"><span><small>Duration</small><b>${esc(p.duration||'Not set')}</b></span><span><small>Advertised return</small><b>${Number(p.roi||0)}%</b></span></div><div class="fr-plan-card-actions"><button class="btn btn-primary btn-small" type="button" data-fr-edit-plan="${esc(p.id)}">✎ Edit</button><button class="btn btn-small" type="button" data-fr-toggle-plan="${esc(p.id)}">${active?'⏸ Deactivate':'▶ Activate'}</button></div></article>`}).join('');
   }
-  function edit(id){select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));form.classList.add('is-editing');form.scrollIntoView({behavior:'smooth',block:'center'});}
+  function edit(id){const p=plans().find(x=>String(x.id)===String(id));if(p&&typeof window.finriseOpenPlanModal==='function'){window.finriseOpenPlanModal(p,false);return;}select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));form.classList.add('is-editing');}
   function cancel(){form.classList.remove('is-editing');}
-  grid.addEventListener('click',e=>{const editBtn=e.target.closest('[data-fr-edit-plan]'),toggleBtn=e.target.closest('[data-fr-toggle-plan]');if(editBtn){edit(editBtn.dataset.frEditPlan);return;}if(toggleBtn){select.value=toggleBtn.dataset.frTogglePlan;const b=$('adminTogglePlan');if(b)b.click();}});
+  grid.addEventListener('finrise:redraw',draw);
+  document.addEventListener('finrise:plans-updated',draw);
+  grid.addEventListener('click',async e=>{const editBtn=e.target.closest('[data-fr-edit-plan]'),toggleBtn=e.target.closest('[data-fr-toggle-plan]');if(editBtn){e.preventDefault();const p=plans().find(x=>String(x.id)===String(editBtn.dataset.frEditPlan));if(p)window.finriseOpenPlanModal?.(p,false);else window.toast?.('Plan details could not be loaded.',true);return;}if(toggleBtn){e.preventDefault();const id=toggleBtn.dataset.frTogglePlan;const p=plans().find(x=>String(x.id)===String(id));if(!p)return;toggleBtn.disabled=true;try{const client=window.finriseSupabase;if(!client)throw new Error('Supabase is not connected.');const next=p.active===false;const {error}=await client.from('investment_plans').update({is_active:next,updated_at:new Date().toISOString()}).eq('id',p.id);if(error)throw error;p.active=next;await window.loadSharedPlansFromSupabase?.(true);draw();window.toast?.(next?'Successfully activated plan.':'Successfully deactivated plan.');}catch(err){console.error(err);window.toast?.(err.message||'Could not update plan.',true);toggleBtn.disabled=false;}}});
   $('frPlanCancelTop')?.addEventListener('click',cancel);
   $('adminSavePlan')?.addEventListener('click',()=>setTimeout(()=>{form.classList.remove('is-editing');draw();},120));
   $('adminNewPlan')?.addEventListener('click',()=>{setTimeout(()=>{form.classList.add('is-editing');},60)});
@@ -4279,5 +4439,6 @@
 })();
 </script>
 
+<script id="finrise-global-reach-counter">(function(){function run(){var el=document.getElementById('globalReachCounter');if(!el||el.dataset.ran)return;el.dataset.ran='1';var start=1,end=10000,duration=1600,t0=0;function tick(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/duration);var eased=1-Math.pow(1-p,3);el.textContent=Math.max(1,Math.floor(start+(end-start)*eased)).toLocaleString('en-US')+'+';if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();})();</script>
 </body>
 </html>

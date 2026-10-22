@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+  <!-- FINRISE ASSETS: TradingView iframe fallback fix; does not require TradingView.widget global. -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#071426" />
@@ -1708,11 +1709,21 @@
               }
               const {error}=await window.finriseSupabase.rpc("finrise_admin_review_request",{p_kind:"deposit",p_request_id:b.dataset.id,p_decision:decision});
               if(error) throw error;
-              await syncAdminProfilesFromSupabase();
-              go("admin");
-              window.setTimeout(() => document.querySelector('[data-admin-tab="deposits"]')?.click(), 80);
-              toast(decision === "approved" ? "Deposit approved; the USD balance and transaction ledger have been updated." : "Deposit request rejected.");
-            } catch(err) { toast(err.message||"Could not update deposit request.",true); button.disabled=false; }
+              // The database RPC performs the balance credit and ledger write atomically.
+              // Keep the confirmation short; the request row retains its reference and timestamp.
+              if (decision === "approved") {
+                toast("You have successfully approved.");
+              } else {
+                toast("Deposit request rejected.");
+              }
+              try {
+                await syncAdminProfilesFromSupabase();
+                go("admin");
+                window.setTimeout(() => document.querySelector('[data-admin-tab="deposits"]')?.click(), 80);
+              } catch (refreshErr) {
+                console.warn("Deposit was updated, but the admin list could not refresh:", refreshErr);
+              }
+            } catch(err) { console.error("Deposit approval failed:", err); toast((err && err.message) ? "Approval failed: " + err.message : "Approval failed. Check the Supabase approval functions and try again.",true); button.disabled=false; }
           }));
           app.querySelectorAll("[data-admin-withdraw]").forEach((b) => (b.onclick = async () => {
             const button=b; button.disabled=true;
@@ -2139,77 +2150,48 @@
         function closeModal() {
           $("modalBackdrop").classList.remove("open");
         }
-        function mountAdminCandles() {
-          const target = $("adminTradingViewChart");
+        function mountTradingViewIframe(targetId, symbol = "BINANCE:BTCUSDT", interval = "15", sideToolbar = true) {
+          const target = document.getElementById(targetId);
           if (!target) return;
-          const symbol = $("adminChartPair")?.value || "BINANCE:BTCUSDT";
+          const safeSymbol = String(symbol || "BINANCE:BTCUSDT");
+          const params = new URLSearchParams({
+            symbol: safeSymbol,
+            interval: String(interval || "15"),
+            timezone: "Etc/UTC",
+            theme: "dark",
+            style: "1",
+            locale: "en",
+            enable_publishing: "false",
+            allow_symbol_change: "true",
+            hide_side_toolbar: sideToolbar ? "0" : "1",
+            withdateranges: "1",
+            details: "0",
+            hotlist: "0",
+            calendar: "0",
+            support_host: "https://www.tradingview.com"
+          });
           target.innerHTML = "";
-          if (typeof TradingView === "undefined") {
-            target.innerHTML = '<div class="muted" style="padding:24px">TradingView is unavailable. Check your connection and reload.</div>';
-            return;
-          }
-          try {
-            new TradingView.widget({
-              autosize: true,
-              symbol,
-              interval: "15",
-              timezone: "Etc/UTC",
-              theme: "dark",
-              style: "1",
-              locale: "en",
-              enable_publishing: false,
-              allow_symbol_change: true,
-              container_id: "adminTradingViewChart",
-              hide_side_toolbar: false,
-              withdateranges: true,
-              details: true,
-              hotlist: false,
-              save_image: false,
-              backgroundColor: "#071426",
-              gridColor: "rgba(139,184,255,0.08)"
-            });
-          } catch (err) {
-            target.innerHTML = '<div class="muted" style="padding:24px">Unable to load TradingView chart. Please try again.</div>';
-          }
+          target.style.position = "relative";
+          target.style.minHeight = target.style.minHeight || "340px";
+          const frame = document.createElement("iframe");
+          frame.title = "TradingView candlestick chart for " + safeSymbol;
+          frame.loading = "eager";
+          frame.referrerPolicy = "origin";
+          frame.allow = "clipboard-write; fullscreen";
+          frame.style.cssText = "display:block;width:100%;height:100%;min-height:340px;border:0;border-radius:10px;background:#071426";
+          frame.src = "https://www.tradingview.com/widgetembed/?" + params.toString();
+          target.appendChild(frame);
+        }
+        function mountAdminCandles() {
           const pair = $("adminChartPair");
+          mountTradingViewIframe("adminTradingViewChart", pair?.value || "BINANCE:BTCUSDT", "15", true);
           if (pair && !pair.dataset.bound) {
             pair.dataset.bound = "1";
             pair.addEventListener("change", mountAdminCandles);
           }
         }
         function mountTradingView(symbol = "BINANCE:BTCUSDT") {
-          const target = $("tradingview_chart");
-          if (!target) return;
-          target.innerHTML = "";
-          if (typeof TradingView === "undefined") {
-            target.innerHTML =
-              '<div class="muted" style="padding:20px;font-size:12px">TradingView is unavailable. Check your connection.</div>';
-            return;
-          }
-          try {
-            new TradingView.widget({
-              autosize: true,
-              symbol,
-              interval: "15",
-              timezone: "Etc/UTC",
-              theme: "dark",
-              style: "1",
-              locale: "en",
-              enable_publishing: false,
-              allow_symbol_change: true,
-              container_id: "tradingview_chart",
-              hide_side_toolbar: false,
-              withdateranges: true,
-              details: true,
-              hotlist: false,
-              save_image: false,
-              backgroundColor: "#0d0d0d",
-              gridColor: "rgba(232,191,98,0.07)",
-            });
-          } catch {
-            target.innerHTML =
-              '<div class="muted" style="padding:20px">Unable to load chart.</div>';
-          }
+          mountTradingViewIframe("tradingview_chart", symbol, "15", true);
         }
         function mountTVWidget(id, widgetName, config) {
           const el = $(id);
@@ -3008,37 +2990,7 @@
           }
         }
         function mountPublicChart() {
-          const target = $("publicTradingView");
-          if (!target) return;
-          if (typeof TradingView === "undefined") {
-            target.innerHTML =
-              '<div class="muted" style="padding:20px;font-size:12px">TradingView is unavailable. Check your internet connection.</div>';
-            return;
-          }
-          try {
-            new TradingView.widget({
-              autosize: true,
-              symbol: "BINANCE:BTCUSDT",
-              interval: "D",
-              timezone: "Etc/UTC",
-              theme: "dark",
-              style: "1",
-              locale: "en",
-              enable_publishing: false,
-              allow_symbol_change: true,
-              container_id: "publicTradingView",
-              hide_side_toolbar: true,
-              withdateranges: true,
-              details: false,
-              hotlist: false,
-              save_image: false,
-              backgroundColor: "#0d0d0d",
-              gridColor: "rgba(232,191,98,0.07)",
-            });
-          } catch {
-            target.innerHTML =
-              '<div class="muted" style="padding:20px">Unable to load TradingView.</div>';
-          }
+          mountTradingViewIframe("publicTradingView", "BINANCE:BTCUSDT", "D", false);
         }
         $("publicYear").textContent = new Date().getFullYear();
         $("authYear").textContent = new Date().getFullYear();
@@ -4206,5 +4158,126 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{decorateAdmin();observer.observe(document.body,{childList:true,subtree:true});});else{decorateAdmin();observer.observe(document.body,{childList:true,subtree:true});}
 })();
 </script>
+
+<script id="finrise-shared-investment-plans">
+(function () {
+  'use strict';
+  const TABLE = 'finrise_investment_plans';
+  const KEY = 'FINRISE ASSETS_admin_plans';
+  const $ = id => document.getElementById(id);
+  let client = null;
+  let started = false;
+  const defaultPlans = [
+    {id:'starter',name:'Starter Plan',min:50,max:99,duration:'24 hours',roi:20,badge:'STARTER',active:true},
+    {id:'growth',name:'Growth Plan',min:100,max:299,duration:'48 hours',roi:50,badge:'GROWTH',active:true},
+    {id:'premium',name:'Premium Plan',min:300,max:499,duration:'4 days',roi:75,badge:'PREMIUM',active:true},
+    {id:'elite',name:'Elite Plan',min:500,max:999,duration:'1 week',roi:100,badge:'ELITE',active:true},
+    {id:'bot',name:'Bot Trading Plan',min:300,max:3000,duration:'30 days',roi:40,badge:'BOT TRADING',rateLabel:'40% daily',active:true}
+  ];
+  function toRow(p) {
+    return {id:String(p.id),name:String(p.name),min_amount:Number(p.min||0),max_amount:Number(p.max||0),duration:String(p.duration||''),advertised_roi:Number(p.roi||0),badge:String(p.badge||'INVESTMENT PLAN'),rate_label:p.rateLabel||null,is_active:p.active!==false,updated_at:new Date().toISOString()};
+  }
+  function fromRow(r) {
+    return {id:String(r.id),name:r.name,min:Number(r.min_amount||0),max:Number(r.max_amount||0),duration:r.duration||'',roi:Number(r.advertised_roi||0),badge:r.badge||'INVESTMENT PLAN',rateLabel:r.rate_label||undefined,active:r.is_active!==false};
+  }
+  function cache(list) {
+    if (!Array.isArray(window.PLANS) && typeof PLANS === 'undefined') return;
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (_) {}
+  }
+  function replacePlans(list) {
+    if (!Array.isArray(list) || !list.length) return;
+    // The main application declares PLANS as a mutable array.
+    PLANS.splice(0, PLANS.length, ...list);
+    cache(list);
+    try {
+      if (typeof currentUser !== 'undefined' && currentUser && typeof go === 'function' && typeof currentPage !== 'undefined') {
+        go(currentPage);
+      }
+    } catch (_) {}
+    document.dispatchEvent(new CustomEvent('finrise:plans-updated'));
+  }
+  async function loadPlans() {
+    if (!client) client = window.finriseSupabase;
+    if (!client || !client.from) return false;
+    const {data, error} = await client.from(TABLE).select('id,name,min_amount,max_amount,duration,advertised_roi,badge,rate_label,is_active,updated_at').order('min_amount',{ascending:true});
+    if (error) { console.warn('Shared investment plans are not available yet. Run the supplied SQL migration.', error.message); return false; }
+    if (Array.isArray(data) && data.length) {
+      replacePlans(data.map(fromRow));
+    } else {
+      // Seed the unchanged default plan values once, but only from an authenticated admin session.
+      try {
+        const {data:isAdmin} = await client.rpc('is_finrise_admin');
+        if (isAdmin === true) {
+          const {error:seedError} = await client.from(TABLE).upsert(defaultPlans.map(toRow), {onConflict:'id'});
+          if (!seedError) {
+            const seeded = await client.from(TABLE).select('id,name,min_amount,max_amount,duration,advertised_roi,badge,rate_label,is_active,updated_at').order('min_amount',{ascending:true});
+            if (!seeded.error && seeded.data && seeded.data.length) replacePlans(seeded.data.map(fromRow));
+          }
+        } else {
+          replacePlans(defaultPlans.map(p => ({...p})));
+        }
+      } catch (_) { replacePlans(defaultPlans.map(p => ({...p}))); }
+    }
+    return true;
+  }
+  async function savePlan(p) {
+    if (!client) client = window.finriseSupabase;
+    if (!client) throw new Error('Supabase is not connected. Plan saved only in this browser.');
+    const row = toRow(p);
+    const {error} = await client.from(TABLE).upsert(row,{onConflict:'id'});
+    if (error) throw error;
+  }
+  async function removePlan(id) {
+    if (!client) client = window.finriseSupabase;
+    if (!client) throw new Error('Supabase is not connected.');
+    const {error} = await client.from(TABLE).delete().eq('id',String(id));
+    if (error) throw error;
+  }
+  function planById(id) { return PLANS.find(p => String(p.id) === String(id)); }
+  function capturePlanButtons() {
+    document.addEventListener('click', function (event) {
+      const target = event.target && event.target.closest ? event.target.closest('#adminSavePlan,#adminTogglePlan,#adminNewPlan,#adminRemovePlan') : null;
+      if (!target) return;
+      const beforeId = $('adminPlan') ? $('adminPlan').value : null;
+      setTimeout(async function () {
+        try {
+          if (target.id === 'adminRemovePlan') {
+            if (beforeId) await removePlan(beforeId);
+          } else if (target.id === 'adminSavePlan' || target.id === 'adminTogglePlan' || target.id === 'adminNewPlan') {
+            const id = $('adminPlan') ? $('adminPlan').value : null;
+            const p = id && planById(id);
+            if (p) await savePlan(p);
+          }
+          await loadPlans();
+        } catch (error) {
+          console.error('Shared plan save failed:', error);
+          if (typeof toast === 'function') toast('Plan could not be saved to all users: ' + (error.message || 'database error') + '. Run the plan SQL migration and try again.', true);
+        }
+      }, 0);
+    });
+  }
+  async function start() {
+    if (started) return;
+    client = window.finriseSupabase;
+    if (!client || !client.from) return;
+    started = true;
+    capturePlanButtons();
+    await loadPlans();
+    try {
+      client.auth.onAuthStateChange(function () { setTimeout(loadPlans, 0); });
+    } catch (_) {}
+  }
+  function boot() {
+    start();
+    let tries = 0;
+    const timer = setInterval(function () {
+      if (started || ++tries > 40) { clearInterval(timer); return; }
+      start();
+    }, 500);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+
 </body>
 </html>

@@ -916,40 +916,12 @@
         color: white;
         border: 1px solid #393939;
       }
-      .auth-social-static .social-btn {
-        opacity: 1;
-        cursor: default;
-        pointer-events: none;
-        min-height: 44px;
-      }
-      .auth-social-static .social-btn:disabled {
-        opacity: 1;
-      }
-      .auth-social-static .social-btn span {
-        font-size: 10px;
-        white-space: nowrap;
-      }
-      .auth-social-divider {
-        margin-top: 18px;
-      }
-      .finrise-unread-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        padding: 4px 9px;
-        color: #fff;
-        background: #d92d43;
-        font-size: 11px;
-        font-weight: 800;
-      }
-      .finrise-unread-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #fff;
-        display: inline-block;
-      }
+      .auth-social-static .social-btn { opacity: 1; cursor: default; pointer-events: none; min-height: 44px; }
+      .auth-social-static .social-btn:disabled { opacity: 1; }
+      .auth-social-static .social-btn span { font-size: 10px; white-space: nowrap; }
+      .auth-social-divider { margin-top: 18px; }
+      .finrise-unread-label { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 9px; color:#fff; background:#d92d43; font-size:11px; font-weight:800; }
+      .finrise-unread-dot { width:7px; height:7px; border-radius:50%; background:#fff; display:inline-block; }
       .auth-legal {
         font-size: 9px;
         line-height: 1.8;
@@ -4347,7 +4319,13 @@
         }
       }
     </style>
-  </head>
+  <style id="finrise-smartsupp-admin-guard">
+      body.admin-mode iframe[src*="smartsupp"],
+      body.admin-workspace iframe[src*="smartsupp"],
+      body.admin-mode [id*="smartsupp"],
+      body.admin-workspace [id*="smartsupp"] { display: none !important; }
+    </style>
+</head>
   <body>
     <noscript
       ><div
@@ -5171,65 +5149,14 @@
                 Log In
               </button>
             </form>
-            <div class="or auth-social-divider">
-              <span>OR CONTINUE WITH</span>
-            </div>
-            <div
-              class="social-row auth-social-static"
-              aria-label="Alternative sign-in options"
-            >
-              <button
-                class="social-btn"
-                type="button"
-                disabled
-                aria-disabled="true"
-                tabindex="-1"
-                title="Google sign-in is not enabled"
-              >
-                <svg
-                  width="19"
-                  height="19"
-                  viewBox="0 0 48 48"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill="#EA4335"
-                    d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.74 7.18l7.64 5.93c4.46-4.12 7.14-10.2 7.14-17.58z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M24 48c6.48 0 11.93-2.13 15.91-5.87l-7.64-5.93c-2.12 1.42-4.84 2.27-8.27 2.27-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
-                  />
-                </svg>
+            <div class="or auth-social-divider"><span>OR CONTINUE WITH</span></div>
+            <div class="social-row auth-social-static" aria-label="Alternative sign-in options">
+              <button class="social-btn" type="button" disabled aria-disabled="true" tabindex="-1" title="Google sign-in is not enabled">
+                <svg width="19" height="19" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.74 7.18l7.64 5.93c4.46-4.12 7.14-10.2 7.14-17.58z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.87l-7.64-5.93c-2.12 1.42-4.84 2.27-8.27 2.27-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
                 <span>Continue with Google</span>
               </button>
-              <button
-                class="social-btn apple"
-                type="button"
-                disabled
-                aria-disabled="true"
-                tabindex="-1"
-                title="Apple sign-in is not enabled"
-              >
-                <svg
-                  width="18"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M16.37 12.63c.02 2.2 1.93 2.93 1.95 2.94-.02.05-.3 1.03-.99 2.04-.6.88-1.22 1.75-2.2 1.77-.96.02-1.27-.57-2.37-.57-1.1 0-1.45.55-2.36.59-.95.04-1.67-.95-2.28-1.82-1.24-1.79-2.19-5.06-.91-7.27.63-1.09 1.75-1.78 2.96-1.8.92-.02 1.78.62 2.36.62.58 0 1.67-.77 2.82-.66.48.02 1.84.19 2.71 1.47-.07.04-1.62.95-1.69 2.69ZM14.81 6.9c.5-.6.84-1.43.75-2.26-.72.03-1.59.48-2.11 1.08-.46.53-.87 1.38-.76 2.19.8.06 1.62-.41 2.12-1.01Z"
-                  />
-                </svg>
+              <button class="social-btn apple" type="button" disabled aria-disabled="true" tabindex="-1" title="Apple sign-in is not enabled">
+                <svg width="18" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.37 12.63c.02 2.2 1.93 2.93 1.95 2.94-.02.05-.3 1.03-.99 2.04-.6.88-1.22 1.75-2.2 1.77-.96.02-1.27-.57-2.37-.57-1.1 0-1.45.55-2.36.59-.95.04-1.67-.95-2.28-1.82-1.24-1.79-2.19-5.06-.91-7.27.63-1.09 1.75-1.78 2.96-1.8.92-.02 1.78.62 2.36.62.58 0 1.67-.77 2.82-.66.48.02 1.84.19 2.71 1.47-.07.04-1.62.95-1.69 2.69ZM14.81 6.9c.5-.6.84-1.43.75-2.26-.72.03-1.59.48-2.11 1.08-.46.53-.87 1.38-.76 2.19.8.06 1.62-.41 2.12-1.01Z"/></svg>
                 <span>Continue with Apple</span>
               </button>
             </div>
@@ -5522,7 +5449,8 @@
                 : String(row.id),
               name: isLegacyNewInvestment ? "Aurum Sovereign Plan" : row.name,
               description: isLegacyNewInvestment
-                ? row.description || "A 30-day investment option. "
+                ? row.description ||
+                  "A 30-day investment option. Advertised returns are not guaranteed; review all risks and terms before investing."
                 : row.description || "",
               min: isLegacyNewInvestment ? 3000 : Number(row.min_amount || 0),
               max: isLegacyNewInvestment
@@ -5582,7 +5510,8 @@
             ) || {
               id: "aurum-sovereign-plan",
               name: "Aurum Sovereign Plan",
-              description: "A 30-day investment option. ",
+              description:
+                "A 30-day investment option. Advertised returns are not guaranteed; review all risks and terms before investing.",
               min: 3000,
               max: Number.MAX_SAFE_INTEGER,
               duration: "30 days",
@@ -5756,7 +5685,7 @@
           const { data: profiles, error } = await client
             .from("finrise_profiles")
             .select(
-              "id,email,full_name,username,country,referral_code,created_at",
+              "id,email,full_name,username,country,referral_code,referred_by,created_at",
             )
             .order("created_at", { ascending: false });
           if (error) throw error;
@@ -5778,6 +5707,7 @@
               username: profile.username || old.username || "",
               country: profile.country || old.country || "",
               referralCode: profile.referral_code || old.referralCode || "",
+              referredBy: profile.referred_by || old.referredBy || "",
               createdAt:
                 profile.created_at || old.createdAt || new Date().toISOString(),
             });
@@ -5798,7 +5728,7 @@
           const [bal, deps, wds, txs, invs, notifs] = await Promise.all([
             client
               .from("user_balances")
-              .select("available_balance,currency")
+              .select("available_balance,referral_balance,currency")
               .eq("user_id", currentUser.id),
             client
               .from("deposit_requests")
@@ -5852,6 +5782,7 @@
                 .toUpperCase() === "USD",
           );
           state.balance = Number(usdBalanceRow?.available_balance || 0);
+          state.referralEarnings = Number(usdBalanceRow?.referral_balance || 0);
           const remote = [];
           for (const d of deps.data || [])
             remote.push({
@@ -5944,6 +5875,26 @@
           state.realizedProfit = (invs.data || [])
             .filter((inv) => inv.status === "completed")
             .reduce((sum, inv) => sum + Number(inv.profit_amount || 0), 0);
+          // Referral history is server-backed so it appears across devices and after re-login.
+          try {
+            const { data: referralRows, error: referralError } = await client.rpc(
+              "finrise_get_my_referrals",
+            );
+            if (referralError) throw referralError;
+            state.referrals = (referralRows || []).map((r) => ({
+              id: r.id,
+              name: r.full_name || r.username || r.email || "Referral",
+              email: r.email || "",
+              username: r.username || "",
+              date: r.created_at,
+              createdAt: r.created_at,
+              activity: r.activity || "Registration",
+              commission: Number(r.commission || 0),
+              status: r.status || "Registered",
+            }));
+          } catch (referralError) {
+            console.warn("Referral history could not be loaded:", referralError);
+          }
           saveState();
         }
         window.finriseRefreshNotifications = async function () {
@@ -6411,7 +6362,7 @@
               }
               const { data: profile, error: profileError } = await client
                 .from("finrise_profiles")
-                .select("full_name,email,username,country,referral_code")
+                .select("full_name,email,username,country,referral_code,referred_by")
                 .eq("id", data.user.id)
                 .single();
               if (profileError) throw profileError;
@@ -6422,6 +6373,7 @@
                 username: profile.username || username,
                 country: profile.country || country || "",
                 referralCode: profile.referral_code || "",
+                referredBy: profile.referred_by || "",
               };
               state = loadUserState(currentUser);
               await hydrateUserStateFromSupabase();
@@ -6478,7 +6430,7 @@
             }
             const { data: profile, error: profileError } = await client
               .from("finrise_profiles")
-              .select("id,email,full_name,username,country,referral_code")
+              .select("id,email,full_name,username,country,referral_code,referred_by")
               .eq("id", data.user.id)
               .single();
             if (profileError) throw profileError;
@@ -6490,6 +6442,7 @@
               username: profile.username || "",
               country: profile.country || "",
               referralCode: profile.referral_code || "",
+              referredBy: profile.referred_by || "",
             };
             state = loadUserState(currentUser);
             await hydrateUserStateFromSupabase();
@@ -6648,7 +6601,7 @@
           return `<div class="welcome"><div><h1 class="dash-h1">${title}</h1><p class="subtitle">${desc}</p></div><div class="quick-actions">${actions}</div></div>`;
         }
         function planCard(p) {
-          return `<article class="card"><span class="plan-badge">${p.badge}</span><div class="plan-name">${esc(p.name)}</div><div class="plan-minmax">Minimum ${money(p.min)} · Maximum ${p.unlimitedMax ? "∞" : money(p.max)}</div><div class="plan-roi">${esc(p.rateLabel || `${p.roi}%`)}</div><div class="muted" style="font-size:11px">Duration: ${esc(p.duration)}</div>${p.unlimitedMax ? '<p class="panel-note" style="color:#e5c16e">/p>' : ""}<ul class="plan-features"><li>Investment activity record</li><li>Amount within plan limits</li><li>Review plan terms before continuing</li></ul><button class="btn btn-primary" style="width:100%" data-buy-plan="${p.id}">BUY PACKAGE</button></article>`;
+          return `<article class="card"><span class="plan-badge">${p.badge}</span><div class="plan-name">${esc(p.name)}</div><div class="plan-minmax">Minimum ${money(p.min)} · Maximum ${p.unlimitedMax ? "∞" : money(p.max)}</div><div class="plan-roi">${esc(p.rateLabel || `${p.roi}%`)}</div><div class="muted" style="font-size:11px">Duration: ${esc(p.duration)}</div>${p.unlimitedMax ? '<p class="panel-note" style="color:#e5c16e">Advertised return is not guaranteed. Verify all risks and terms before investing.</p>' : ""}<ul class="plan-features"><li>Investment activity record</li><li>Amount within plan limits</li><li>Review plan terms before continuing</li></ul><button class="btn btn-primary" style="width:100%" data-buy-plan="${p.id}">Preview Plan →</button></article>`;
         }
         function dashboardPage() {
           return `${heading("Welcome back, " + esc(state.name), "Manage your account, investments and market activity.", '<button class="btn" data-go="plans">Investment Plans</button><button class="btn" data-go="trading">Open Trading</button>')}<div class="grid stats-grid">${statCard("Total Balance", money(state.balance + state.invested), "◉", "Total account balance")}${statCard("Available Balance", money(state.balance), "▣", "Available account balance")}${statCard("Total Investments", money(state.invested), "◇", "Investment principal")}${statCard("Realized Profit", money(state.realizedProfit), "↗", "Recorded returns")}</div><div class="grid two-col"><section class="card chart-card"><div class="chart-toolbar"><div class="pair">${coinImg("BTC", 36)}<div><strong>BTC / USD</strong><div class="chart-price" id="chartPrice">Market data loading…</div></div></div><button class="btn btn-small" data-go="trading">Full Trading View ↗</button></div><div id="tradingview_chart"><div class="muted" style="padding:20px;font-size:12px">Connecting to TradingView…</div></div><p class="panel-note">Third-party market chart. This does not represent your account balance.</p></section><section class="card"><div class="section-head"><div><h2>Market Overview</h2><p>Cryptocurrency prices</p></div><span class="live-label">● DATA</span></div><div class="market-list">${marketRows()}</div><p class="panel-note">Live prices depend on external API availability.</p></section></div><div class="grid three-col section"><section class="card"><h2>Recent Transactions</h2><p class="subtitle">Latest account activity</p>${
@@ -6823,12 +6776,8 @@
               })),
           );
           const adminNotificationItems = (
-            pendingRequestNotifications.length
-              ? pendingRequestNotifications
-              : getAdminEvents()
-          )
-            .slice()
-            .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            pendingRequestNotifications.length ? pendingRequestNotifications : getAdminEvents()
+          ).slice().sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
           const activeUsers = all.filter((x) => !x.st.isDeactivated),
             deactivatedUsers = all.filter((x) => x.st.isDeactivated);
           const total = all.reduce(
@@ -6889,9 +6838,9 @@
  <div class="admin-kpis" id="adminOverviewKpis"><div class="admin-kpi"><small>REGISTERED USERS</small><strong>${users.length}</strong></div><div class="admin-kpi"><small>ACTIVE USERS</small><strong>${activeUsers.length}</strong></div><div class="admin-kpi"><small>ACTIVE INVESTMENT VALUE</small><strong>${money(totalInvested)}</strong></div><div class="admin-kpi"><small>TOTAL SITE ACCOUNT VALUE</small><strong>${money(total)}</strong></div><div class="admin-kpi"><small>CONFIRMED DEPOSITS</small><strong>${money(totalDeposits)}</strong></div><div class="admin-kpi"><small>CONFIRMED WITHDRAWALS</small><strong>${money(totalWithdrawals)}</strong></div><div class="admin-kpi"><small>PENDING DEPOSITS</small><strong>${deposits.length}</strong></div><div class="admin-kpi"><small>PENDING WITHDRAWALS</small><strong>${withdrawals.length}</strong></div></div>
 
  <section class="card section hidden" id="adminReferralManager">
-   <div class="section-head"><div><h2>Referral manager</h2><p>Referral tree, direct sponsor, each user's available balance, invested amount and referral earnings.</p></div><button class="btn btn-small" id="adminRefreshTree">Refresh tree</button></div>
-   <div class="field" style="max-width:420px"><label for="adminReferralRoot">Start tree from a user</label><select id="adminReferralRoot"><option value="*">All referral networks</option>${users.map((u) => `<option value="${esc(u.email)}">${esc(u.name)} — ${esc(u.email)}</option>`).join("")}</select></div>
-   <div id="adminReferralTree" class="ref-tree-wrap"></div>
+   <div class="section-head"><div><h2>Referral commission tree</h2><p>Direct sponsor, the email they referred, and the 10% commission earned from that person's approved deposits.</p></div><button type="button" class="btn btn-small" id="adminRefreshTree">Refresh referrals</button></div>
+   <div class="admin-referral-summary" id="adminReferralSummary">Loading referral records…</div>
+   <div class="table-wrap admin-referral-table-wrap"><table class="admin-referral-table"><thead><tr><th>Name (sponsor)</th><th>Referral</th><th>Commissioned</th></tr></thead><tbody id="adminReferralTree"><tr><td colspan="3">Loading referral records…</td></tr></tbody></table></div>
  </section>
  <section class="card section hidden" id="adminUsersSection"><div class="section-head"><div><h2>Active users</h2><p>Deactivated accounts are listed separately below</p></div><button class="btn btn-small" id="adminRefresh">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Country</th><th>Registered</th><th>Available balance</th><th>Invested</th><th>Notifications</th><th>Actions</th></tr></thead><tbody>${activeUsers.length ? activeUsers.map(({ u, st }) => `<tr><td><img class="fr-user-avatar fr-real-user-avatar" src="${esc(u.avatar || u.avatar_url || u.profile_image || u.photo_url || "")}" alt="" onerror="this.style.display='none'"><strong>${esc(u.name)}</strong><br><span class="muted">${esc(u.email)}</span><br><span class="muted">@${esc(u.username || "user")}</span></td><td>${esc(u.country || "Not supplied")}</td><td>${dateText(u.createdAt || new Date().toISOString())}</td><td>${money(st.balance)}</td><td>${money(st.invested)}</td><td>${st.notifications.length}</td><td><div class="admin-actions"><button type="button" class="btn btn-small" data-admin-view="${esc(u.email)}">View</button><button type="button" class="btn btn-small btn-primary" data-admin-add="${esc(u.email)}">Add funds</button></div></td></tr>`).join("") : '<tr><td colspan="7">No active users yet.</td></tr>'}</tbody></table></div></section>
  <section class="card section hidden" id="adminDeactivatedSection"><div class="section-head"><div><h2>Deactivated users</h2><p>Accounts disabled from the user side</p></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Deactivated</th><th>Status</th><th>Action</th></tr></thead><tbody>${deactivatedUsers.length ? deactivatedUsers.map(({ u, st }) => `<tr><td>${esc(u.name)}<br><span class="muted">${esc(u.email)}</span></td><td>${dateText(st.deactivatedAt || st.lastActivity || u.createdAt || new Date().toISOString())}</td><td><span class="deactivated-tag">Deactivated user</span></td><td><button class="btn btn-small" data-admin-reactivate="${esc(u.email)}">Reactivate</button></td></tr>`).join("") : '<tr><td colspan="4">No deactivated users.</td></tr>'}</tbody></table></div></section>
@@ -6948,19 +6897,7 @@
      : '<div class="empty-state">No active investment records yet.</div>';
  })()}</div></section>
  <section class="card section hidden" id="adminPresenceSection"><h2>Activity / presence</h2><p class="subtitle">This standalone file cannot reliably tell whether a user is online or has left the site. It only shows registration records and local account activity, not cross-device live presence.</p><div class="table-wrap"><table><thead><tr><th>User</th><th>Registration date</th><th>Last recorded activity</th><th>Presence status</th></tr></thead><tbody>${all.length ? all.map(({ u, st }) => `<tr><td>${esc(u.email)}</td><td>${dateText(u.createdAt || new Date().toISOString())}</td><td>${dateText(st.lastActivity || u.createdAt || new Date().toISOString())}</td><td><span class="status">${st.lastActivity ? "Last activity recorded" : "No activity record"}</span></td></tr>`).join("") : '<tr><td colspan="4">No user activity yet.</td></tr>'}</tbody></table></div></section>
- <section class="card section hidden" id="adminRecentNotification"><div class="section-head"><div><h2>Recent notification</h2><p class="subtitle">Shows one latest deposit or withdrawal request at a time.</p></div><span class="notification-state">${adminNotificationItems.length ? "1 latest item" : "No new requests"}</span></div>${
-   adminNotificationItems.length
-     ? (() => {
-         const e = adminNotificationItems[0];
-         const isRequest = !!e.isRequest;
-         const tab =
-           String(e.type || "").toLowerCase() === "withdrawal"
-             ? "withdrawals"
-             : "deposits";
-         return `<article class="admin-event ${e.read ? "is-read" : "is-unread"}"><div><strong>${esc(e.title || "Recent activity")}</strong><p>${esc(e.message || "A new account activity was recorded.")}</p><small>${esc(e.email || "")} · ${dateText(e.date || new Date().toISOString())}</small></div>${isRequest ? `<div class="admin-actions"><button type="button" class="btn btn-small btn-primary" data-admin-recent-go="${tab}">Review ${tab === "withdrawals" ? "withdrawal" : "deposit"}</button></div>` : ""}</article>`;
-       })()
-     : '<div class="empty-state">No recent deposit or withdrawal requests.</div>'
- }</section>`;
+ <section class="card section hidden" id="adminRecentNotification"><div class="section-head"><div><h2>Recent notification</h2><p class="subtitle">Shows one latest deposit or withdrawal request at a time.</p></div><span class="notification-state">${adminNotificationItems.length ? "1 latest item" : "No new requests"}</span></div>${adminNotificationItems.length ? (() => { const e = adminNotificationItems[0]; const isRequest = !!e.isRequest; const tab = String(e.type || "").toLowerCase() === "withdrawal" ? "withdrawals" : "deposits"; return `<article class="admin-event ${e.read ? "is-read" : "is-unread"}"><div><strong>${esc(e.title || "Recent activity")}</strong><p>${esc(e.message || "A new account activity was recorded.")}</p><small>${esc(e.email || "")} · ${dateText(e.date || new Date().toISOString())}</small></div>${isRequest ? `<div class="admin-actions"><button type="button" class="btn btn-small btn-primary" data-admin-recent-go="${tab}">Review ${tab === "withdrawals" ? "withdrawal" : "deposit"}</button></div>` : ""}</article>`; })() : '<div class="empty-state">No recent deposit or withdrawal requests.</div>'}</section>`;
         }
         function adminUserState(email) {
           const u = getUsers().find(
@@ -6978,52 +6915,31 @@
         window.finriseAdminRefreshPage = function (tab) {
           go("admin");
           window.setTimeout(() => {
-            const safeTab = [
-              "users",
-              "deposits",
-              "withdrawals",
-              "notifications",
-              "overview",
-            ].includes(tab)
-              ? tab
-              : "users";
-            const tabButton = document.querySelector(
-              '#adminSubnav [data-admin-tab="' + safeTab + '"]',
-            );
+            const safeTab = ["users", "deposits", "withdrawals", "notifications", "overview"].includes(tab) ? tab : "users";
+            const tabButton = document.querySelector('#adminSubnav [data-admin-tab="' + safeTab + '"]');
             if (tabButton) tabButton.click();
           }, 120);
         };
         window.finriseAdminReactivateUser = async function (email) {
           const x = adminUserState(email);
-          if (!x)
-            throw new Error(
-              "Could not find this user in the registered-user list.",
-            );
+          if (!x) throw new Error("Could not find this user in the registered-user list.");
           x.st.isDeactivated = false;
           delete x.st.deactivatedAt;
           adminSaveUser(email, x.st);
           go("admin");
           window.setTimeout(() => {
-            const tab = document.querySelector(
-              '#adminSubnav [data-admin-tab="users"]',
-            );
+            const tab = document.querySelector('#adminSubnav [data-admin-tab="users"]');
             if (tab) tab.click();
           }, 100);
         };
         function bindAdminEvents() {
           const app = $("app");
           if (!app) return;
-          if (typeof window.finriseLoadAdminNotifications === "function")
-            window.finriseLoadAdminNotifications();
+          if (typeof window.finriseLoadAdminNotifications === "function") window.finriseLoadAdminNotifications();
           app.querySelectorAll("[data-admin-recent-go]").forEach((button) => {
             button.onclick = () => {
-              const tab =
-                button.dataset.adminRecentGo === "withdrawals"
-                  ? "withdrawals"
-                  : "deposits";
-              const tabButton = document.querySelector(
-                '#adminSubnav [data-admin-tab="' + tab + '"]',
-              );
+              const tab = button.dataset.adminRecentGo === "withdrawals" ? "withdrawals" : "deposits";
+              const tabButton = document.querySelector('#adminSubnav [data-admin-tab="' + tab + '"]');
               if (tabButton) tabButton.click();
             };
           });
@@ -7271,46 +7187,27 @@
                   button.disabled = true;
                   button.textContent = "Saving…";
                   try {
-                    if (!window.finriseSupabase)
-                      throw new Error(
-                        "Supabase is not connected. Sign in again and retry.",
-                      );
-                    const { data: newBalance, error } =
-                      await window.finriseSupabase.rpc(
-                        "finrise_admin_credit_balance",
-                        {
-                          p_email: email,
-                          p_amount: amount,
-                          p_reason:
-                            reason || "Administrator balance adjustment",
-                        },
-                      );
+                    if (!window.finriseSupabase) throw new Error("Supabase is not connected. Sign in again and retry.");
+                    const { data: newBalance, error } = await window.finriseSupabase.rpc(
+                      "finrise_admin_credit_balance",
+                      {
+                        p_email: email,
+                        p_amount: amount,
+                        p_reason: reason || "Administrator balance adjustment",
+                      },
+                    );
                     if (error) throw error;
                     const userRecord = adminUserState(email);
                     if (userRecord) {
-                      userRecord.st.balance = Number.isFinite(
-                        Number(newBalance),
-                      )
-                        ? Number(newBalance)
-                        : Number(userRecord.st.balance || 0) + amount;
+                      userRecord.st.balance = Number.isFinite(Number(newBalance)) ? Number(newBalance) : Number(userRecord.st.balance || 0) + amount;
                       adminSaveUser(email, userRecord.st);
                     }
                     closeModal();
-                    toast(
-                      "Funds added successfully and the user balance has been updated.",
-                    );
-                    try {
-                      await syncAdminProfilesFromSupabase();
-                    } catch (refreshError) {
-                      console.warn(
-                        "Balance was credited but the user list refresh failed:",
-                        refreshError,
-                      );
-                    }
+                    toast("Funds added successfully and the user balance has been updated.");
+                    try { await syncAdminProfilesFromSupabase(); }
+                    catch (refreshError) { console.warn("Balance was credited but the user list refresh failed:", refreshError); }
                     go("admin");
-                    const usersTab = document.querySelector(
-                      '#adminSubnav [data-admin-tab="users"]',
-                    );
+                    const usersTab = document.querySelector('#adminSubnav [data-admin-tab="users"]');
                     if (usersTab) usersTab.click();
                   } catch (err) {
                     toast(
@@ -7357,9 +7254,7 @@
                       : "rejected";
                   // The review RPC must update request status, balance, and ledger atomically.
                   if (!window.finriseSupabase)
-                    throw new Error(
-                      "Supabase is not connected. Please sign in again.",
-                    );
+                    throw new Error("Supabase is not connected. Please sign in again.");
                   const { error } = await window.finriseSupabase.rpc(
                     "finrise_admin_review_request",
                     {
@@ -7798,17 +7693,12 @@
           try {
             await syncAdminProfilesFromSupabase();
           } catch (refreshErr) {
-            console.warn(
-              "Request was updated, but the admin list could not fully refresh:",
-              refreshErr,
-            );
+            console.warn("Request was updated, but the admin list could not fully refresh:", refreshErr);
           }
           go("admin");
           window.setTimeout(() => {
             const tabButton = document.querySelector(
-              '#adminSubnav [data-admin-tab="' +
-                (tab === "withdrawals" ? "withdrawals" : "deposits") +
-                '"]',
+              '#adminSubnav [data-admin-tab="' + (tab === "withdrawals" ? "withdrawals" : "deposits") + '"]'
             );
             if (tabButton) tabButton.click();
           }, 100);
@@ -7989,23 +7879,16 @@
               frame.style.height = "100%";
               if (frame.clientHeight < 100) frame.style.height = "380px";
             }, 700);
-            frame.addEventListener(
-              "load",
-              () => {
-                target.dataset.chartLoaded = "1";
-                target.style.minHeight = "380px";
-              },
-              { once: true },
-            );
+            frame.addEventListener("load", () => {
+              target.dataset.chartLoaded = "1";
+              target.style.minHeight = "380px";
+            }, { once: true });
             setTimeout(() => {
-              if (!frame.isConnected || target.dataset.chartLoaded === "1")
-                return;
-              target.insertAdjacentHTML(
-                "beforeend",
+              if (!frame.isConnected || target.dataset.chartLoaded === "1") return;
+              target.insertAdjacentHTML("beforeend",
                 '<div class="finrise-market-fallback" style="padding:8px;font-size:11px">If the live chart is blocked by your browser, <a href="https://www.tradingview.com/chart/?symbol=' +
-                  encodeURIComponent(symbol) +
-                  '" target="_blank" rel="noopener noreferrer">open TradingView directly</a>.</div>',
-              );
+                encodeURIComponent(symbol) +
+                '" target="_blank" rel="noopener noreferrer">open TradingView directly</a>.</div>');
             }, 9000);
           }
         }
@@ -8226,19 +8109,13 @@
               t.setSelectionRange(0, t.value.length);
               const copied = document.execCommand("copy");
               t.remove();
-              if (!copied)
-                throw new Error(
-                  "Clipboard access was blocked by this browser.",
-                );
+              if (!copied) throw new Error("Clipboard access was blocked by this browser.");
             }
             toast("Copied to clipboard.");
             return true;
           } catch (err) {
             console.warn("Clipboard copy failed:", err);
-            toast(
-              "Copy failed. Please allow clipboard access and try again.",
-              true,
-            );
+            toast("Copy failed. Please allow clipboard access and try again.", true);
             return false;
           }
         }
@@ -8256,12 +8133,7 @@
           // Only show the red badge when there is an actual unread notification.
           // Pending deposit/withdrawal rows stay in their management tables and do not create a fake badge count.
           const count = adminMode
-            ? getAdminEvents().filter((n) => !n.read).length +
-              (Array.isArray(window.__finriseAdminDbNotifications)
-                ? window.__finriseAdminDbNotifications.filter(
-                    (n) => !n.is_read && !n.is_deleted,
-                  ).length
-                : 0)
+            ? getAdminEvents().filter((n) => !n.read).length + (Array.isArray(window.__finriseAdminDbNotifications) ? window.__finriseAdminDbNotifications.filter((n) => !n.is_read && !n.is_deleted).length : 0)
             : (state?.notifications || []).length;
           b.textContent = count > 99 ? "99+" : String(count);
           b.classList.toggle("hidden", count === 0);
@@ -9303,68 +9175,41 @@
           true,
         );
         // Reactivation: update Supabase first, then rerender the user-management tables in place.
-        document.addEventListener(
-          "click",
-          async function (e) {
-            const b = e.target.closest("[data-admin-reactivate]");
-            if (!b) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            const email = b.getAttribute("data-admin-reactivate");
-            const originalText = b.textContent;
-            b.disabled = true;
-            b.textContent = "Activating…";
-            try {
-              const client = window.finriseSupabase;
-              if (!client)
-                throw new Error(
-                  "Supabase is not connected. Sign in again and retry.",
-                );
-              const rpcCall = (async () => {
-                const { data: admin, error: adminErr } =
-                  await client.rpc("is_finrise_admin");
-                if (adminErr) throw adminErr;
-                if (admin !== true)
-                  throw new Error("Administrator access required.");
-                const { error } = await client.rpc(
-                  "admin_reactivate_finrise_profile",
-                  { p_email: email },
-                );
-                if (error) throw error;
-              })();
-              let timeoutId;
-              await Promise.race([
-                rpcCall,
-                new Promise((_, reject) => {
-                  timeoutId = window.setTimeout(
-                    () =>
-                      reject(
-                        new Error(
-                          "The server took too long to reactivate this account. Run the supplied SQL, refresh the admin page, and try again.",
-                        ),
-                      ),
-                    12000,
-                  );
-                }),
-              ]).finally(() => window.clearTimeout(timeoutId));
-              if (typeof window.finriseAdminReactivateUser !== "function")
-                throw new Error(
-                  "The admin user list did not finish loading. Refresh once and retry.",
-                );
-              await window.finriseAdminReactivateUser(email);
-              if (typeof window.toastMsg === "function")
-                window.toastMsg("User reactivated and moved to Active users.");
-              else if (typeof window.toast === "function")
-                window.toast("User reactivated and moved to Active users.");
-            } catch (err) {
-              console.error("Reactivation failed", err);
-              b.disabled = false;
-              b.textContent = originalText || "Reactivate";
-              alert(err?.message || "Could not reactivate user.");
-            }
-          },
-          true,
-        );
+        document.addEventListener("click", async function (e) {
+          const b = e.target.closest("[data-admin-reactivate]");
+          if (!b) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const email = b.getAttribute("data-admin-reactivate");
+          const originalText = b.textContent;
+          b.disabled = true;
+          b.textContent = "Activating…";
+          try {
+            const client = window.finriseSupabase;
+            if (!client) throw new Error("Supabase is not connected. Sign in again and retry.");
+            const rpcCall = (async () => {
+              const { data: admin, error: adminErr } = await client.rpc("is_finrise_admin");
+              if (adminErr) throw adminErr;
+              if (admin !== true) throw new Error("Administrator access required.");
+              const { error } = await client.rpc("admin_reactivate_finrise_profile", { p_email: email });
+              if (error) throw error;
+            })();
+            let timeoutId;
+            await Promise.race([
+              rpcCall,
+              new Promise((_, reject) => { timeoutId = window.setTimeout(() => reject(new Error("The server took too long to reactivate this account. Run the supplied SQL, refresh the admin page, and try again.")), 12000); })
+            ]).finally(() => window.clearTimeout(timeoutId));
+            if (typeof window.finriseAdminReactivateUser !== "function") throw new Error("The admin user list did not finish loading. Refresh once and retry.");
+            await window.finriseAdminReactivateUser(email);
+            if (typeof window.toastMsg === "function") window.toastMsg("User reactivated and moved to Active users.");
+            else if (typeof window.toast === "function") window.toast("User reactivated and moved to Active users.");
+          } catch (err) {
+            console.error("Reactivation failed", err);
+            b.disabled = false;
+            b.textContent = originalText || "Reactivate";
+            alert(err?.message || "Could not reactivate user.");
+          }
+        }, true);
       })();
     </script>
 
@@ -9675,81 +9520,34 @@
             rd.readAsDataURL(file);
           });
         }
-        function buildReferralTreeMarkup(
-          rootUser,
-          users,
-          depth = 0,
-          seen = new Set(),
-        ) {
-          if (!rootUser || seen.has(rootUser.email.toLowerCase())) return "";
-          seen.add(rootUser.email.toLowerCase());
-          const st = loadUserState(rootUser);
-          const children = users.filter((u) => {
-            const code = String(u.referredBy || "")
-              .trim()
-              .toLowerCase();
-            if (!code) return false;
-            const parentCode = String(rootUser.referralCode || "")
-              .trim()
-              .toLowerCase();
-            const legacyCode =
-              "ref-" +
-              String(rootUser.username || "")
-                .slice(0, 3)
-                .toLowerCase();
-            return (
-              code === parentCode ||
-              code === legacyCode ||
-              code === String(rootUser.username || "").toLowerCase()
-            );
-          });
-          return `<div class="ref-tree-node ${depth ? "child" : "root"}" style="--tree-depth:${depth}"><div class="ref-tree-head"><div class="ref-tree-person"><div class="ref-tree-avatar">${esc(
-            String(rootUser.name || rootUser.username || "U")
-              .trim()
-              .split(/\s+/)
-              .slice(0, 2)
-              .map((x) => x[0] || "")
-              .join("")
-              .toUpperCase(),
-          )}</div><div><div class="ref-tree-name">${esc(rootUser.name || rootUser.username || "User")}<span class="ref-level-pill">${depth === 0 ? "ROOT / SPONSOR" : `LEVEL ${depth + 1}`}</span></div><div class="ref-tree-meta">${esc(rootUser.email)} · ${esc(rootUser.country || "Country not supplied")}<br>Referral code: ${esc(rootUser.referralCode || "—")} · Referred by: ${esc(rootUser.referredBy || "Direct / unknown")}</div></div></div><span class="status ${st.isDeactivated ? "" : "active"}">${st.isDeactivated ? "Deactivated" : "Active"}</span></div><div class="ref-tree-balances"><span class="ref-tree-chip"><b>Available</b> ${money(st.balance)}</span><span class="ref-tree-chip"><b>Invested</b> ${money(st.invested)}</span><span class="ref-tree-chip"><b>Referral earnings</b> ${money(st.referralEarnings)}</span><span class="ref-tree-chip"><b>Direct referrals</b> ${children.length}</span></div>${children.length ? `<div class="ref-tree-children">${children.map((u) => buildReferralTreeMarkup(u, users, depth + 1, seen)).join("")}</div>` : `<div class="ref-tree-leaf">${depth === 0 ? "No direct referrals yet" : "End of this branch"}</div>`}</div>`;
-        }
-        function refreshAdminReferralTree() {
+        async function refreshAdminReferralTree() {
           const target = $("adminReferralTree");
+          const summary = $("adminReferralSummary");
           if (!target) return;
-          const users = getUsers();
-          const selected = $("adminReferralRoot")?.value || "*";
-          const roots =
-            selected === "*"
-              ? users.filter((u) => {
-                  const code = String(u.referredBy || "")
-                    .trim()
-                    .toLowerCase();
-                  return (
-                    !code ||
-                    !users.some((p) => {
-                      const own = String(p.referralCode || "").toLowerCase();
-                      const legacy =
-                        "ref-" +
-                        String(p.username || "")
-                          .slice(0, 3)
-                          .toLowerCase();
-                      return (
-                        code === own ||
-                        code === legacy ||
-                        code === String(p.username || "").toLowerCase()
-                      );
-                    })
-                  );
-                })
-              : users.filter((u) => u.email === selected);
-          const markup = roots
-            .map((u) => buildReferralTreeMarkup(u, users, 0, new Set()))
-            .join("");
-          target.innerHTML =
-            markup ||
-            '<div class="ref-tree-empty">No referral records yet. New registrations must enter a referral code to appear beneath a sponsor.</div>';
+          target.innerHTML = '<tr><td colspan="3">Loading referral records…</td></tr>';
+          if (summary) summary.textContent = "Loading referral totals…";
+          try {
+            const c = window.finriseSupabase;
+            if (!c) throw new Error("Supabase is not connected.");
+            const { data, error } = await c.rpc("finrise_admin_referral_report");
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+            if (!rows.length) {
+              target.innerHTML = '<tr><td colspan="3">No referral relationships found yet. New sign-ups must retain their sponsor referral code.</td></tr>';
+              if (summary) summary.textContent = "0 direct referrals · $0.00 total commission";
+              return;
+            }
+            const totalCommission = rows.reduce((sum, r) => sum + Number(r.commission_total || 0), 0);
+            const sponsorCount = new Set(rows.map(r => String(r.sponsor_email || "").toLowerCase())).size;
+            if (summary) summary.textContent = `${rows.length} direct referral${rows.length === 1 ? "" : "s"} · ${sponsorCount} sponsor${sponsorCount === 1 ? "" : "s"} · ${money(totalCommission)} total commissions`;
+            target.innerHTML = rows.map(r => `<tr><td><strong>${esc(r.sponsor_name || r.sponsor_email || "Sponsor")}</strong><br><span class="muted">${esc(r.sponsor_email || "Email unavailable")}</span></td><td><strong>${esc(r.referred_name || r.referred_email || "Referral")}</strong><br><span class="muted">${esc(r.referred_email || "Email unavailable")}</span></td><td><strong class="admin-referral-commission">${money(Number(r.commission_total || 0))}</strong><br><span class="muted">From ${money(Number(r.deposit_total || 0))} approved deposits</span></td></tr>`).join("");
+          } catch (error) {
+            console.error("Admin referral report failed:", error);
+            target.innerHTML = `<tr><td colspan="3">Could not load referral report: ${esc(error?.message || "Run the referral commission SQL, then refresh.")}</td></tr>`;
+            if (summary) summary.textContent = "Referral report unavailable";
+          }
         }
-        function wireAdminSubnav() {
+                function wireAdminSubnav() {
           const nav = $("adminSubnav");
           if (!nav) return;
           const groups = {
@@ -10961,7 +10759,6 @@
         }
 
         function hideWidgetForAdmin() {
-          if (!isAdminWorkspace()) return;
           document
             .querySelectorAll(
               'iframe[src*="smartsupp"], [id*="smartsupp"], [class*="smartsupp"]',
@@ -10971,6 +10768,19 @@
               el.style.setProperty("visibility", "hidden", "important");
               el.style.setProperty("pointer-events", "none", "important");
               el.setAttribute("aria-hidden", "true");
+            });
+        }
+
+        function restoreWidgetForUser() {
+          document
+            .querySelectorAll(
+              'iframe[src*="smartsupp"], [id*="smartsupp"], [class*="smartsupp"]',
+            )
+            .forEach(function (el) {
+              el.style.removeProperty("display");
+              el.style.removeProperty("visibility");
+              el.style.removeProperty("pointer-events");
+              el.removeAttribute("aria-hidden");
             });
         }
 
@@ -11005,8 +10815,12 @@
         }
 
         function syncWidget() {
-          if (isAdminWorkspace()) hideWidgetForAdmin();
-          else loadSmartsupp();
+          if (isAdminWorkspace()) {
+            hideWidgetForAdmin();
+          } else {
+            loadSmartsupp();
+            restoreWidgetForUser();
+          }
         }
 
         syncWidget();
@@ -11018,8 +10832,14 @@
         window.addEventListener("storage", syncWidget);
         document.addEventListener("visibilitychange", syncWidget);
         if (window.MutationObserver) {
+          var smartsuppSyncQueued = false;
           new MutationObserver(function () {
-            if (isAdminWorkspace()) hideWidgetForAdmin();
+            if (smartsuppSyncQueued) return;
+            smartsuppSyncQueued = true;
+            window.setTimeout(function () {
+              smartsuppSyncQueued = false;
+              syncWidget();
+            }, 150);
           }).observe(document.documentElement, {
             childList: true,
             subtree: true,
@@ -11850,158 +11670,78 @@
     <style id="finrise-admin-request-click-fix">
       #adminMenuShade:not(.open),
       #adminMenuShade.finrise-shade-force-open:not(.open) {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
+        display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
       }
       #adminSubnav.finrise-menu-force-open:not(.open) {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
+        display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
       }
-      #adminRequestsSection {
-        position: relative !important;
-        isolation: isolate;
+      #adminRequestsSection { position: relative !important; isolation: isolate; }
+      #adminRequestsSection .admin-actions, #adminRequestsSection .admin-actions button {
+        position: relative !important; pointer-events: auto !important; touch-action: manipulation !important; cursor: pointer !important;
       }
-      #adminRequestsSection .admin-actions,
-      #adminRequestsSection .admin-actions button {
-        position: relative !important;
-        pointer-events: auto !important;
-        touch-action: manipulation !important;
-        cursor: pointer !important;
-      }
-      #adminRequestsSection .admin-actions button {
-        z-index: 2 !important;
-        min-height: 36px;
-      }
-      #adminUsersSection,
-      #adminEventsSection,
-      #adminDbNotificationsSection,
-      #adminSendNotificationSection,
-      #adminRecentNotification {
-        position: relative !important;
-        isolation: isolate;
-      }
-      #adminUsersSection button,
-      #adminEventsSection button,
-      #adminDbNotificationsSection button,
-      #adminSendNotificationSection button,
-      #adminRecentNotification button {
-        position: relative !important;
-        z-index: 2 !important;
-        pointer-events: auto !important;
-        touch-action: manipulation !important;
-        cursor: pointer;
-      }
-    </style>
+      #adminRequestsSection .admin-actions button { z-index: 2 !important; min-height: 36px; }
+      #adminUsersSection, #adminEventsSection, #adminDbNotificationsSection, #adminSendNotificationSection, #adminRecentNotification { position:relative !important; isolation:isolate; }
+      #adminUsersSection button, #adminEventsSection button, #adminDbNotificationsSection button, #adminSendNotificationSection button, #adminRecentNotification button { position:relative !important; z-index:2 !important; pointer-events:auto !important; touch-action:manipulation !important; cursor:pointer; }
+    
+      /* Admin referral report: compact, readable sponsor/referral/commission rows. */
+      #adminReferralManager .admin-referral-summary { margin: 12px 0; padding: 12px 14px; border: 1px solid rgba(139,184,255,.22); border-radius: 12px; background: rgba(139,184,255,.07); font-weight: 700; }
+      #adminReferralManager .admin-referral-table-wrap { overflow-x: auto; }
+      #adminReferralManager .admin-referral-table { width: 100%; min-width: 620px; border-collapse: collapse; }
+      #adminReferralManager .admin-referral-table th, #adminReferralManager .admin-referral-table td { padding: 13px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(139,184,255,.14); }
+      #adminReferralManager .admin-referral-table th { color: var(--gold2, #8bb8ff); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+      #adminReferralManager .admin-referral-commission { color: #38d996; }
+</style>
     <script id="finrise-admin-request-delegated-click-fix">
       (function () {
         "use strict";
         if (window.__finriseAdminRequestClickFixInstalled) return;
         window.__finriseAdminRequestClickFixInstalled = true;
         function toastMessage(message, isError) {
-          if (typeof window.toast === "function") {
-            window.toast(message, !!isError);
-            return;
-          }
+          if (typeof window.toast === "function") { window.toast(message, !!isError); return; }
           var node = document.getElementById("toast");
-          if (node) {
-            node.textContent = message;
-            node.classList.add("show");
-          } else if (isError) window.alert(message);
+          if (node) { node.textContent = message; node.classList.add("show"); }
+          else if (isError) window.alert(message);
         }
-        document.addEventListener(
-          "click",
-          async function (event) {
-            var target = event.target;
-            var button =
-              target && target.closest
-                ? target.closest(
-                    "#adminRequestsSection button[data-admin-deposit], #adminRequestsSection button[data-admin-withdraw]",
-                  )
-                : null;
-            if (!button) return;
-            event.preventDefault();
-            event.stopPropagation();
-            if (event.stopImmediatePropagation)
-              event.stopImmediatePropagation();
-            if (button.dataset.finriseBusy === "1") return;
-            var kind = button.hasAttribute("data-admin-deposit")
-              ? "deposit"
-              : "withdrawal";
-            var action =
-              kind === "deposit"
-                ? button.getAttribute("data-admin-deposit")
-                : button.getAttribute("data-admin-withdraw");
-            var decision =
-              String(action || "").toLowerCase() === "approve"
-                ? "approved"
-                : "rejected";
-            var requestId = button.getAttribute("data-id");
-            if (!requestId) {
-              toastMessage(
-                "This request is missing its database ID. Refresh the admin page.",
-                true,
-              );
-              return;
+        document.addEventListener("click", async function (event) {
+          var target = event.target;
+          var button = target && target.closest ? target.closest("#adminRequestsSection button[data-admin-deposit], #adminRequestsSection button[data-admin-withdraw]") : null;
+          if (!button) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          if (button.dataset.finriseBusy === "1") return;
+          var kind = button.hasAttribute("data-admin-deposit") ? "deposit" : "withdrawal";
+          var action = kind === "deposit" ? button.getAttribute("data-admin-deposit") : button.getAttribute("data-admin-withdraw");
+          var decision = String(action || "").toLowerCase() === "approve" ? "approved" : "rejected";
+          var requestId = button.getAttribute("data-id");
+          if (!requestId) { toastMessage("This request is missing its database ID. Refresh the admin page.", true); return; }
+          var client = window.finriseSupabase;
+          if (!client || typeof client.rpc !== "function") { toastMessage("Supabase is not connected. Sign in again and retry.", true); return; }
+          button.dataset.finriseBusy = "1";
+          button.disabled = true;
+          var oldText = button.textContent;
+          button.textContent = decision === "approved" ? "Approving…" : "Rejecting…";
+          try {
+            var result = await client.rpc("finrise_admin_review_request", {
+              p_kind: kind, p_request_id: requestId, p_decision: decision
+            });
+            if (result && result.error) throw result.error;
+            toastMessage(kind === "deposit"
+              ? (decision === "approved" ? "Deposit approved. Refreshing requests…" : "Deposit rejected. Refreshing requests…")
+              : (decision === "approved" ? "Withdrawal marked approved. This does not transfer funds automatically." : "Withdrawal rejected. Refreshing requests…"), false);
+            if (typeof window.finriseRefreshAdminRequests === "function") {
+              await window.finriseRefreshAdminRequests(kind === "withdrawal" ? "withdrawals" : "deposits");
+            } else {
+              throw new Error("The admin refresh helper did not load. Refresh the page once and retry.");
             }
-            var client = window.finriseSupabase;
-            if (!client || typeof client.rpc !== "function") {
-              toastMessage(
-                "Supabase is not connected. Sign in again and retry.",
-                true,
-              );
-              return;
-            }
-            button.dataset.finriseBusy = "1";
-            button.disabled = true;
-            var oldText = button.textContent;
-            button.textContent =
-              decision === "approved" ? "Approving…" : "Rejecting…";
-            try {
-              var result = await client.rpc("finrise_admin_review_request", {
-                p_kind: kind,
-                p_request_id: requestId,
-                p_decision: decision,
-              });
-              if (result && result.error) throw result.error;
-              toastMessage(
-                kind === "deposit"
-                  ? decision === "approved"
-                    ? "Deposit approved. Refreshing requests…"
-                    : "Deposit rejected. Refreshing requests…"
-                  : decision === "approved"
-                    ? "Withdrawal marked approved. This does not transfer funds automatically."
-                    : "Withdrawal rejected. Refreshing requests…",
-                false,
-              );
-              if (typeof window.finriseRefreshAdminRequests === "function") {
-                await window.finriseRefreshAdminRequests(
-                  kind === "withdrawal" ? "withdrawals" : "deposits",
-                );
-              } else {
-                throw new Error(
-                  "The admin refresh helper did not load. Refresh the page once and retry.",
-                );
-              }
-            } catch (error) {
-              console.error("FINRISE admin request review failed:", error);
-              toastMessage(
-                "Could not update request: " +
-                  (error && error.message
-                    ? error.message
-                    : "Unknown error. Check Supabase permissions and request status."),
-                true,
-              );
-              button.disabled = false;
-              button.textContent = oldText;
-              delete button.dataset.finriseBusy;
-            }
-          },
-          true,
-        );
+          } catch (error) {
+            console.error("FINRISE admin request review failed:", error);
+            toastMessage("Could not update request: " + (error && error.message ? error.message : "Unknown error. Check Supabase permissions and request status."), true);
+            button.disabled = false;
+            button.textContent = oldText;
+            delete button.dataset.finriseBusy;
+          }
+        }, true);
       })();
     </script>
 
@@ -12011,546 +11751,187 @@
         if (window.__finriseAdminUserNotificationFixInstalled) return;
         window.__finriseAdminUserNotificationFixInstalled = true;
         const client = () => window.finriseSupabase;
-        const esc = (v) =>
-          String(v ?? "").replace(
-            /[&<>"']/g,
-            (c) =>
-              ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#39;",
-              })[c],
-          );
-        const money = (v) =>
-          new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(Number(v || 0));
+        const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+        const money = (v) => new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(Number(v || 0));
         function notify(message, error) {
-          if (typeof window.finriseAdminToast === "function")
-            window.finriseAdminToast(message, !!error);
+          if (typeof window.finriseAdminToast === "function") window.finriseAdminToast(message, !!error);
           else if (error) window.alert(message);
         }
         function refreshAdmin(tab) {
-          if (typeof window.finriseAdminRefreshPage === "function")
-            window.finriseAdminRefreshPage(tab || "users");
+          if (typeof window.finriseAdminRefreshPage === "function") window.finriseAdminRefreshPage(tab || "users");
         }
         function modal(title, html) {
-          if (typeof window.finriseAdminOpenModal === "function")
-            window.finriseAdminOpenModal(title, html);
-          else
-            notify(
-              "Admin dialog is not ready. Refresh the page and try again.",
-              true,
-            );
+          if (typeof window.finriseAdminOpenModal === "function") window.finriseAdminOpenModal(title, html);
+          else notify("Admin dialog is not ready. Refresh the page and try again.", true);
         }
         function renderDbNotifications() {
           const list = document.getElementById("adminDbNotificationsList");
           const countEl = document.getElementById("adminDbNotificationsCount");
           if (!list) return;
-          const rows = (
-            Array.isArray(window.__finriseAdminDbNotifications)
-              ? window.__finriseAdminDbNotifications
-              : []
-          ).filter((n) => !n.is_deleted);
-          const unread = rows.filter((n) => !n.is_read).length;
-          if (countEl)
-            countEl.innerHTML = unread
-              ? '<span class="finrise-unread-label"><span class="finrise-unread-dot"></span>' +
-                unread +
-                " unread</span>"
-              : rows.length + " alerts";
-          list.innerHTML = rows.length
-            ? rows
-                .map((n) => {
-                  const type =
-                    String(n.request_type || "deposit").toLowerCase() ===
-                    "withdrawal"
-                      ? "withdrawal"
-                      : "deposit";
-                  const isUnread = !n.is_read;
-                  return (
-                    '<article class="admin-event ' +
-                    (isUnread ? "is-unread" : "is-read") +
-                    '" data-admin-db-notification-row="' +
-                    esc(n.id) +
-                    '"><div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong>' +
-                    esc(
-                      n.title ||
-                        (type === "withdrawal"
-                          ? "Withdrawal request"
-                          : "Deposit request"),
-                    ) +
-                    "</strong>" +
-                    (isUnread
-                      ? '<span class="finrise-unread-label"><span class="finrise-unread-dot"></span>UNREAD</span>'
-                      : '<span class="notification-state">Read</span>') +
-                    "</div><p>" +
-                    esc(n.message || "A user submitted a request.") +
-                    "</p><small>" +
-                    esc(n.user_email || "Registered user") +
-                    " · " +
-                    money(n.amount) +
-                    " · " +
-                    esc(n.currency || "USD") +
-                    " · " +
-                    esc(
-                      n.created_at
-                        ? new Date(n.created_at).toLocaleString()
-                        : "",
-                    ) +
-                    '</small></div><div class="admin-actions">' +
-                    (isUnread
-                      ? '<button type="button" class="btn btn-small" data-admin-db-read="' +
-                        esc(n.id) +
-                        '">Mark as read</button>'
-                      : "") +
-                    '<button type="button" class="btn btn-small btn-delete" data-admin-db-delete="' +
-                    esc(n.id) +
-                    '">Delete</button><button type="button" class="btn btn-small btn-primary" data-admin-db-review="' +
-                    type +
-                    '">Review ' +
-                    type +
-                    "</button></div></article>"
-                  );
-                })
-                .join("")
-            : '<div class="empty-state">No deposit or withdrawal alerts yet.</div>';
-          const recent = document.getElementById("adminRecentNotification");
+          const rows = (Array.isArray(window.__finriseAdminDbNotifications) ? window.__finriseAdminDbNotifications : []).filter(n => !n.is_deleted);
+          const unread = rows.filter(n => !n.is_read).length;
+          if (countEl) countEl.innerHTML = unread ? '<span class="finrise-unread-label"><span class="finrise-unread-dot"></span>' + unread + ' unread</span>' : rows.length + ' alerts';
+          list.innerHTML = rows.length ? rows.map(n => {
+            const type = String(n.request_type || "deposit").toLowerCase() === "withdrawal" ? "withdrawal" : "deposit";
+            const isUnread = !n.is_read;
+            return '<article class="admin-event ' + (isUnread ? 'is-unread' : 'is-read') + '" data-admin-db-notification-row="' + esc(n.id) + '"><div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong>' + esc(n.title || (type === 'withdrawal' ? 'Withdrawal request' : 'Deposit request')) + '</strong>' + (isUnread ? '<span class="finrise-unread-label"><span class="finrise-unread-dot"></span>UNREAD</span>' : '<span class="notification-state">Read</span>') + '</div><p>' + esc(n.message || 'A user submitted a request.') + '</p><small>' + esc(n.user_email || 'Registered user') + ' · ' + money(n.amount) + ' · ' + esc(n.currency || 'USD') + ' · ' + esc(n.created_at ? new Date(n.created_at).toLocaleString() : '') + '</small></div><div class="admin-actions">' + (isUnread ? '<button type="button" class="btn btn-small" data-admin-db-read="' + esc(n.id) + '">Mark as read</button>' : '') + '<button type="button" class="btn btn-small btn-delete" data-admin-db-delete="' + esc(n.id) + '">Delete</button><button type="button" class="btn btn-small btn-primary" data-admin-db-review="' + type + '">Review ' + type + '</button></div></article>';
+          }).join('') : '<div class="empty-state">No deposit or withdrawal alerts yet.</div>';
+          const recent = document.getElementById('adminRecentNotification');
           if (recent && rows.length) {
             const latest = rows[0];
-            const type =
-              String(latest.request_type || "deposit").toLowerCase() ===
-              "withdrawal"
-                ? "withdrawal"
-                : "deposit";
-            const unreadLabel = !latest.is_read
-              ? '<span class="finrise-unread-label"><span class="finrise-unread-dot"></span>UNREAD NOTIFICATION</span>'
-              : '<span class="notification-state">Read</span>';
-            recent.innerHTML =
-              '<div class="section-head"><div><h2>Recent notification</h2><p class="subtitle">Latest deposit or withdrawal request.</p></div>' +
-              unreadLabel +
-              "</div>" +
-              '<article class="admin-event ' +
-              (!latest.is_read ? "is-unread" : "is-read") +
-              '"><div><strong>' +
-              esc(latest.title || "New " + type + " request") +
-              "</strong><p>" +
-              esc(latest.message || "A user submitted a request.") +
-              "</p><small>" +
-              esc(latest.user_email || "Registered user") +
-              " · " +
-              money(latest.amount) +
-              " " +
-              esc(latest.currency || "USD") +
-              " · " +
-              esc(
-                latest.created_at
-                  ? new Date(latest.created_at).toLocaleString()
-                  : "",
-              ) +
-              '</small></div><div class="admin-actions">' +
-              (!latest.is_read
-                ? '<button type="button" class="btn btn-small" data-admin-db-read="' +
-                  esc(latest.id) +
-                  '">Mark as read</button>'
-                : "") +
-              '<button type="button" class="btn btn-small btn-delete" data-admin-db-delete="' +
-              esc(latest.id) +
-              '">Delete</button>' +
-              '<button type="button" class="btn btn-small btn-primary" data-admin-db-review="' +
-              type +
-              '">Review ' +
-              type +
-              "</button></div></article>";
+            const type = String(latest.request_type || 'deposit').toLowerCase() === 'withdrawal' ? 'withdrawal' : 'deposit';
+            const unreadLabel = !latest.is_read ? '<span class="finrise-unread-label"><span class="finrise-unread-dot"></span>UNREAD NOTIFICATION</span>' : '<span class="notification-state">Read</span>';
+            recent.innerHTML = '<div class="section-head"><div><h2>Recent notification</h2><p class="subtitle">Latest deposit or withdrawal request.</p></div>' + unreadLabel + '</div>' +
+              '<article class="admin-event ' + (!latest.is_read ? 'is-unread' : 'is-read') + '"><div><strong>' + esc(latest.title || ('New ' + type + ' request')) + '</strong><p>' + esc(latest.message || 'A user submitted a request.') + '</p><small>' + esc(latest.user_email || 'Registered user') + ' · ' + money(latest.amount) + ' ' + esc(latest.currency || 'USD') + ' · ' + esc(latest.created_at ? new Date(latest.created_at).toLocaleString() : '') + '</small></div><div class="admin-actions">' +
+              (!latest.is_read ? '<button type="button" class="btn btn-small" data-admin-db-read="' + esc(latest.id) + '">Mark as read</button>' : '') +
+              '<button type="button" class="btn btn-small btn-delete" data-admin-db-delete="' + esc(latest.id) + '">Delete</button>' +
+              '<button type="button" class="btn btn-small btn-primary" data-admin-db-review="' + type + '">Review ' + type + '</button></div></article>';
           } else if (recent) {
-            recent.innerHTML =
-              '<div class="section-head"><div><h2>Recent notification</h2><p class="subtitle">Latest deposit or withdrawal request.</p></div><span class="notification-state">No new requests</span></div><div class="empty-state">No deposit or withdrawal alerts yet.</div>';
+            recent.innerHTML = '<div class="section-head"><div><h2>Recent notification</h2><p class="subtitle">Latest deposit or withdrawal request.</p></div><span class="notification-state">No new requests</span></div><div class="empty-state">No deposit or withdrawal alerts yet.</div>';
           }
-          const badge = document.getElementById("notificationBadge");
-          if (badge && document.body.classList.contains("admin-mode")) {
-            const localUnread = (() => {
-              try {
-                return JSON.parse(
-                  localStorage.getItem("FINRISE ASSETS_admin_events_v1") ||
-                    "[]",
-                ).filter((e) => !e.read).length;
-              } catch (_) {
-                return 0;
-              }
-            })();
+          const badge = document.getElementById('notificationBadge');
+          if (badge && document.body.classList.contains('admin-mode')) {
+            const localUnread = (() => { try { return JSON.parse(localStorage.getItem('FINRISE ASSETS_admin_events_v1') || '[]').filter(e => !e.read).length; } catch (_) { return 0; } })();
             const total = localUnread + unread;
-            badge.textContent = total > 99 ? "99+" : String(total);
-            badge.classList.toggle("hidden", total === 0);
+            badge.textContent = total > 99 ? '99+' : String(total);
+            badge.classList.toggle('hidden', total === 0);
           }
         }
         window.finriseLoadAdminNotifications = async function () {
           const c = client();
-          if (!c || !document.body.classList.contains("admin-mode")) return;
+          if (!c || !document.body.classList.contains('admin-mode')) return;
           try {
-            const { data: isAdmin, error: roleError } =
-              await c.rpc("is_finrise_admin");
+            const { data: isAdmin, error: roleError } = await c.rpc('is_finrise_admin');
             if (roleError) throw roleError;
-            if (isAdmin !== true)
-              throw new Error("Administrator access required.");
-            const { data, error } = await c
-              .from("finrise_admin_notifications")
-              .select(
-                "id,request_type,request_id,user_id,user_email,amount,currency,title,message,is_read,is_deleted,created_at",
-              )
-              .eq("is_deleted", false)
-              .order("created_at", { ascending: false })
-              .limit(100);
+            if (isAdmin !== true) throw new Error('Administrator access required.');
+            const { data, error } = await c.from('finrise_admin_notifications')
+              .select('id,request_type,request_id,user_id,user_email,amount,currency,title,message,is_read,is_deleted,created_at')
+              .eq('is_deleted', false).order('created_at', { ascending: false }).limit(100);
             if (error) throw error;
             window.__finriseAdminDbNotifications = data || [];
             renderDbNotifications();
           } catch (error) {
-            console.error(
-              "Could not load persistent admin notifications:",
-              error,
-            );
-            const list = document.getElementById("adminDbNotificationsList");
-            if (list)
-              list.innerHTML =
-                '<div class="empty-state">Could not load deposit/withdrawal alerts. Run the supplied SQL and check the admin notification table permissions.</div>';
-            const count = document.getElementById("adminDbNotificationsCount");
-            if (count) count.textContent = "Unavailable";
+            console.error('Could not load persistent admin notifications:', error);
+            const list = document.getElementById('adminDbNotificationsList');
+            if (list) list.innerHTML = '<div class="empty-state">Could not load deposit/withdrawal alerts. Run the supplied SQL and check the admin notification table permissions.</div>';
+            const count = document.getElementById('adminDbNotificationsCount');
+            if (count) count.textContent = 'Unavailable';
           }
         };
-        document.addEventListener(
-          "click",
-          async function (event) {
-            const target = event.target;
-            if (!target || !target.closest) return;
-            const viewBtn = target.closest("button[data-admin-view]");
-            const addBtn = target.closest("button[data-admin-add]");
-            const sendBtn = target.closest("#adminSendNotification");
-            const localReadBtn = target.closest(
-              "button[data-admin-event-read]",
-            );
-            const localDeleteBtn = target.closest(
-              "button[data-admin-event-delete]",
-            );
-            const dbReadBtn = target.closest("button[data-admin-db-read]");
-            const dbDeleteBtn = target.closest("button[data-admin-db-delete]");
-            const dbReviewBtn = target.closest("button[data-admin-db-review]");
-            const reactivateBtn = target.closest(
-              "button[data-admin-reactivate]",
-            );
-            if (
-              !(
-                viewBtn ||
-                addBtn ||
-                sendBtn ||
-                localReadBtn ||
-                localDeleteBtn ||
-                dbReadBtn ||
-                dbDeleteBtn ||
-                dbReviewBtn ||
-                reactivateBtn
-              )
-            )
+        document.addEventListener('click', async function (event) {
+          const target = event.target;
+          if (!target || !target.closest) return;
+          const viewBtn = target.closest('button[data-admin-view]');
+          const addBtn = target.closest('button[data-admin-add]');
+          const sendBtn = target.closest('#adminSendNotification');
+          const localReadBtn = target.closest('button[data-admin-event-read]');
+          const localDeleteBtn = target.closest('button[data-admin-event-delete]');
+          const dbReadBtn = target.closest('button[data-admin-db-read]');
+          const dbDeleteBtn = target.closest('button[data-admin-db-delete]');
+          const dbReviewBtn = target.closest('button[data-admin-db-review]');
+          const reactivateBtn = target.closest('button[data-admin-reactivate]');
+          if (!(viewBtn || addBtn || sendBtn || localReadBtn || localDeleteBtn || dbReadBtn || dbDeleteBtn || dbReviewBtn || reactivateBtn)) return;
+          event.preventDefault(); event.stopPropagation(); if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          try {
+            if (viewBtn) {
+              const email = viewBtn.dataset.adminView;
+              const getter = window.finriseAdminGetUserState;
+              const x = typeof getter === 'function' ? getter(email) : null;
+              if (!x) throw new Error('Could not find this user. Refresh the Active users list and retry.');
+              modal('User information', '<p><strong>' + esc(x.u.name) + '</strong><br>' + esc(x.u.email) + '<br>Username: ' + esc(x.u.username || '—') + '<br>Country: ' + esc(x.u.country || 'Not supplied') + '<br>Referred by: ' + esc(x.u.referredBy || 'Direct / not recorded') + '<br>Referral code: ' + esc(x.u.referralCode || '—') + '<br>Registered: ' + esc(x.u.createdAt ? new Date(x.u.createdAt).toLocaleString() : '—') + '<br>Available balance: ' + money(x.st.balance) + '<br>Invested: ' + money(x.st.invested) + '<br>Transactions: ' + (x.st.transactions || []).length + '<br>Investments: ' + (x.st.investments || []).length + '<br>Notifications: ' + (x.st.notifications || []).length + '</p><div class="quick-actions"><button type="button" class="btn" data-close-modal>Close</button></div>');
               return;
-            event.preventDefault();
-            event.stopPropagation();
-            if (event.stopImmediatePropagation)
-              event.stopImmediatePropagation();
-            try {
-              if (viewBtn) {
-                const email = viewBtn.dataset.adminView;
-                const getter = window.finriseAdminGetUserState;
-                const x = typeof getter === "function" ? getter(email) : null;
-                if (!x)
-                  throw new Error(
-                    "Could not find this user. Refresh the Active users list and retry.",
-                  );
-                modal(
-                  "User information",
-                  "<p><strong>" +
-                    esc(x.u.name) +
-                    "</strong><br>" +
-                    esc(x.u.email) +
-                    "<br>Username: " +
-                    esc(x.u.username || "—") +
-                    "<br>Country: " +
-                    esc(x.u.country || "Not supplied") +
-                    "<br>Referred by: " +
-                    esc(x.u.referredBy || "Direct / not recorded") +
-                    "<br>Referral code: " +
-                    esc(x.u.referralCode || "—") +
-                    "<br>Registered: " +
-                    esc(
-                      x.u.createdAt
-                        ? new Date(x.u.createdAt).toLocaleString()
-                        : "—",
-                    ) +
-                    "<br>Available balance: " +
-                    money(x.st.balance) +
-                    "<br>Invested: " +
-                    money(x.st.invested) +
-                    "<br>Transactions: " +
-                    (x.st.transactions || []).length +
-                    "<br>Investments: " +
-                    (x.st.investments || []).length +
-                    "<br>Notifications: " +
-                    (x.st.notifications || []).length +
-                    '</p><div class="quick-actions"><button type="button" class="btn" data-close-modal>Close</button></div>',
-                );
-                return;
-              }
-              if (addBtn) {
-                const email = addBtn.dataset.adminAdd;
-                modal(
-                  "Add funds to account",
-                  "<p>Credit the internal USD balance for <strong>" +
-                    esc(email) +
-                    '</strong>.</p><div class="field"><label for="finriseAdminAmount">Amount (USD)</label><input id="finriseAdminAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="100.00"></div><div class="field"><label for="finriseAdminReason">Reason / reference</label><input id="finriseAdminReason" maxlength="120" placeholder="Adjustment reference"></div><div class="quick-actions"><button type="button" class="btn btn-primary" id="finriseAdminConfirmAdd">Add funds</button><button type="button" class="btn" data-close-modal>Cancel</button></div>',
-                );
-                const confirm = document.getElementById(
-                  "finriseAdminConfirmAdd",
-                );
-                confirm.onclick = async function () {
-                  const amount = Number(
-                    document.getElementById("finriseAdminAmount")?.value,
-                  );
-                  const reason = String(
-                    document.getElementById("finriseAdminReason")?.value || "",
-                  ).trim();
-                  if (!(amount > 0) || !Number.isFinite(amount)) {
-                    notify("Enter a valid amount greater than zero.", true);
-                    return;
-                  }
-                  confirm.disabled = true;
-                  confirm.textContent = "Saving…";
-                  try {
-                    const c = client();
-                    if (!c)
-                      throw new Error(
-                        "Supabase is not connected. Sign in again and retry.",
-                      );
-                    const { data, error } = await c.rpc(
-                      "finrise_admin_credit_balance",
-                      {
-                        p_email: email,
-                        p_amount: amount,
-                        p_reason: reason || "Administrator balance adjustment",
-                      },
-                    );
-                    if (error) throw error;
-                    const x = window.finriseAdminGetUserState?.(email);
-                    if (
-                      x &&
-                      typeof window.finriseAdminSaveUser === "function"
-                    ) {
-                      x.st.balance = Number.isFinite(Number(data))
-                        ? Number(data)
-                        : Number(x.st.balance || 0) + amount;
-                      window.finriseAdminSaveUser(email, x.st);
-                    }
-                    window.finriseAdminCloseModal?.();
-                    notify(
-                      "Funds added successfully. The USD balance was updated.",
-                    );
-                    try {
-                      if (typeof window.finriseAdminRefreshUsers === "function")
-                        await window.finriseAdminRefreshUsers();
-                    } catch (refreshError) {
-                      console.warn(
-                        "Balance was credited, but the user list refresh failed:",
-                        refreshError,
-                      );
-                      notify(
-                        "Funds were added, but the user list could not refresh. Use Refresh to reload it.",
-                        true,
-                      );
-                    }
-                    refreshAdmin("users");
-                  } catch (error) {
-                    console.error("Admin add funds failed:", error);
-                    notify(
-                      "Could not add funds: " +
-                        (error?.message ||
-                          "check the SQL function and permissions."),
-                      true,
-                    );
-                    confirm.disabled = false;
-                    confirm.textContent = "Add funds";
-                  }
-                };
-                return;
-              }
-              if (sendBtn) {
-                const recipient =
-                  document.getElementById("adminNotifyTo")?.value || "*";
-                const title = String(
-                  document.getElementById("adminNotifyTitle")?.value || "",
-                ).trim();
-                const message = String(
-                  document.getElementById("adminNotifyMessage")?.value || "",
-                ).trim();
-                if (!title || !message) {
-                  notify("Enter a notification title and message.", true);
-                  return;
-                }
-                const c = client();
-                if (!c)
-                  throw new Error(
-                    "Supabase is not connected. Sign in again and retry.",
-                  );
-                sendBtn.disabled = true;
-                sendBtn.textContent = "Sending…";
+            }
+            if (addBtn) {
+              const email = addBtn.dataset.adminAdd;
+              modal('Add funds to account', '<p>Credit the internal USD balance for <strong>' + esc(email) + '</strong>.</p><div class="field"><label for="finriseAdminAmount">Amount (USD)</label><input id="finriseAdminAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="100.00"></div><div class="field"><label for="finriseAdminReason">Reason / reference</label><input id="finriseAdminReason" maxlength="120" placeholder="Adjustment reference"></div><div class="quick-actions"><button type="button" class="btn btn-primary" id="finriseAdminConfirmAdd">Add funds</button><button type="button" class="btn" data-close-modal>Cancel</button></div>');
+              const confirm = document.getElementById('finriseAdminConfirmAdd');
+              confirm.onclick = async function () {
+                const amount = Number(document.getElementById('finriseAdminAmount')?.value);
+                const reason = String(document.getElementById('finriseAdminReason')?.value || '').trim();
+                if (!(amount > 0) || !Number.isFinite(amount)) { notify('Enter a valid amount greater than zero.', true); return; }
+                confirm.disabled = true; confirm.textContent = 'Saving…';
                 try {
-                  const { data: sentCount, error } = await c.rpc(
-                    "finrise_admin_send_notification",
-                    {
-                      p_recipient_email: recipient,
-                      p_title: title,
-                      p_message: message,
-                    },
-                  );
-                  if (error) throw error;
-                  const total = Number(sentCount || 0);
-                  if (total < 1)
-                    throw new Error(
-                      "No matching registered profile was found.",
-                    );
-                  document.getElementById("adminNotifyTitle").value = "";
-                  document.getElementById("adminNotifyMessage").value = "";
-                  notify("Notification sent to " + total + " user(s).");
-                  refreshAdmin("notifications");
-                } catch (error) {
-                  console.error("Admin notification send failed:", error);
-                  notify(
-                    "Could not send notification: " +
-                      (error?.message ||
-                        "run the SQL and confirm admin permissions."),
-                    true,
-                  );
-                } finally {
-                  sendBtn.disabled = false;
-                  sendBtn.textContent = "Send notification";
-                }
-                return;
-              }
-              if (localReadBtn || localDeleteBtn) {
-                let events = [];
-                try {
-                  events = JSON.parse(
-                    localStorage.getItem("FINRISE ASSETS_admin_events_v1") ||
-                      "[]",
-                  );
-                } catch (_) {}
-                if (localReadBtn) {
-                  events = events.map((e) =>
-                    e.id === localReadBtn.dataset.adminEventRead
-                      ? { ...e, read: true }
-                      : e,
-                  );
-                }
-                if (localDeleteBtn) {
-                  events = events.filter(
-                    (e) => e.id !== localDeleteBtn.dataset.adminEventDelete,
-                  );
-                }
-                localStorage.setItem(
-                  "FINRISE ASSETS_admin_events_v1",
-                  JSON.stringify(events),
-                );
-                refreshAdmin("notifications");
-                return;
-              }
-              if (dbReadBtn || dbDeleteBtn) {
-                const id =
-                  (dbReadBtn || dbDeleteBtn).dataset.adminDbRead ||
-                  (dbReadBtn || dbDeleteBtn).dataset.adminDbDelete;
-                const c = client();
-                if (!c) throw new Error("Supabase is not connected.");
-                const update = dbReadBtn
-                  ? { is_read: true }
-                  : { is_deleted: true };
-                const { error } = await c
-                  .from("finrise_admin_notifications")
-                  .update(update)
-                  .eq("id", id);
-                if (error) throw error;
-                window.__finriseAdminDbNotifications = (
-                  window.__finriseAdminDbNotifications || []
-                ).map((n) => (n.id === id ? { ...n, ...update } : n));
-                renderDbNotifications();
-                notify(
-                  dbReadBtn
-                    ? "Notification marked as read."
-                    : "Notification deleted.",
-                );
-                return;
-              }
-              if (dbReviewBtn) {
-                refreshAdmin(
-                  dbReviewBtn.dataset.adminDbReview === "withdrawal"
-                    ? "withdrawals"
-                    : "deposits",
-                );
-                return;
-              }
-              if (reactivateBtn) {
-                const email = reactivateBtn.dataset.adminReactivate;
-                reactivateBtn.disabled = true;
-                reactivateBtn.textContent = "Reactivating…";
-                try {
-                  const c = client();
-                  if (!c) throw new Error("Supabase is not connected.");
-                  const { error } = await c.rpc(
-                    "admin_reactivate_finrise_profile",
-                    { p_email: email },
-                  );
+                  const c = client(); if (!c) throw new Error('Supabase is not connected. Sign in again and retry.');
+                  const { data, error } = await c.rpc('finrise_admin_credit_balance', { p_email: email, p_amount: amount, p_reason: reason || 'Administrator balance adjustment' });
                   if (error) throw error;
                   const x = window.finriseAdminGetUserState?.(email);
-                  if (x && typeof window.finriseAdminSaveUser === "function") {
-                    x.st.isDeactivated = false;
-                    delete x.st.deactivatedAt;
-                    window.finriseAdminSaveUser(email, x.st);
+                  if (x && typeof window.finriseAdminSaveUser === 'function') { x.st.balance = Number.isFinite(Number(data)) ? Number(data) : Number(x.st.balance || 0) + amount; window.finriseAdminSaveUser(email, x.st); }
+                  window.finriseAdminCloseModal?.();
+                  notify('Funds added successfully. The USD balance was updated.');
+                  try {
+                    if (typeof window.finriseAdminRefreshUsers === 'function') await window.finriseAdminRefreshUsers();
+                  } catch (refreshError) {
+                    console.warn('Balance was credited, but the user list refresh failed:', refreshError);
+                    notify('Funds were added, but the user list could not refresh. Use Refresh to reload it.', true);
                   }
-                  if (typeof window.finriseAdminRefreshUsers === "function")
-                    await window.finriseAdminRefreshUsers();
-                  refreshAdmin("users");
-                  notify("User reactivated and moved to Active users.");
-                } catch (error) {
-                  notify(
-                    "Could not reactivate user: " +
-                      (error?.message ||
-                        "check the reactivation SQL function."),
-                    true,
-                  );
-                  reactivateBtn.disabled = false;
-                  reactivateBtn.textContent = "Reactivate";
-                }
-              }
-            } catch (error) {
-              console.error("FINRISE admin action failed:", error);
-              notify(error?.message || "Action failed. Please retry.", true);
+                  refreshAdmin('users');
+                } catch (error) { console.error('Admin add funds failed:', error); notify('Could not add funds: ' + (error?.message || 'check the SQL function and permissions.'), true); confirm.disabled = false; confirm.textContent = 'Add funds'; }
+              };
+              return;
             }
-          },
-          true,
-        );
-        document.addEventListener(
-          "click",
-          function (event) {
-            const close =
-              event.target && event.target.closest
-                ? event.target.closest("[data-close-modal]")
-                : null;
-            if (close) {
-              event.preventDefault();
-              window.finriseAdminCloseModal?.();
+            if (sendBtn) {
+              const recipient = document.getElementById('adminNotifyTo')?.value || '*';
+              const title = String(document.getElementById('adminNotifyTitle')?.value || '').trim();
+              const message = String(document.getElementById('adminNotifyMessage')?.value || '').trim();
+              if (!title || !message) { notify('Enter a notification title and message.', true); return; }
+              const c = client(); if (!c) throw new Error('Supabase is not connected. Sign in again and retry.');
+              sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+              try {
+                const { data: sentCount, error } = await c.rpc('finrise_admin_send_notification', {
+                  p_recipient_email: recipient,
+                  p_title: title,
+                  p_message: message
+                });
+                if (error) throw error;
+                const total = Number(sentCount || 0);
+                if (total < 1) throw new Error('No matching registered profile was found.');
+                document.getElementById('adminNotifyTitle').value = ''; document.getElementById('adminNotifyMessage').value = '';
+                notify('Notification sent to ' + total + ' user(s).');
+                refreshAdmin('notifications');
+              } catch (error) { console.error('Admin notification send failed:', error); notify('Could not send notification: ' + (error?.message || 'run the SQL and confirm admin permissions.'), true); }
+              finally { sendBtn.disabled = false; sendBtn.textContent = 'Send notification'; }
+              return;
             }
-          },
-          true,
-        );
-        document.addEventListener("DOMContentLoaded", function () {
-          if (document.body.classList.contains("admin-mode"))
-            window.finriseLoadAdminNotifications();
+            if (localReadBtn || localDeleteBtn) {
+              let events = []; try { events = JSON.parse(localStorage.getItem('FINRISE ASSETS_admin_events_v1') || '[]'); } catch (_) {}
+              if (localReadBtn) { events = events.map(e => e.id === localReadBtn.dataset.adminEventRead ? {...e, read:true} : e); }
+              if (localDeleteBtn) { events = events.filter(e => e.id !== localDeleteBtn.dataset.adminEventDelete); }
+              localStorage.setItem('FINRISE ASSETS_admin_events_v1', JSON.stringify(events));
+              refreshAdmin('notifications');
+              return;
+            }
+            if (dbReadBtn || dbDeleteBtn) {
+              const id = (dbReadBtn || dbDeleteBtn).dataset.adminDbRead || (dbReadBtn || dbDeleteBtn).dataset.adminDbDelete;
+              const c = client(); if (!c) throw new Error('Supabase is not connected.');
+              const update = dbReadBtn ? {is_read:true} : {is_deleted:true};
+              const { error } = await c.from('finrise_admin_notifications').update(update).eq('id', id);
+              if (error) throw error;
+              window.__finriseAdminDbNotifications = (window.__finriseAdminDbNotifications || []).map(n => n.id === id ? {...n, ...update} : n);
+              renderDbNotifications(); notify(dbReadBtn ? 'Notification marked as read.' : 'Notification deleted.');
+              return;
+            }
+            if (dbReviewBtn) { refreshAdmin(dbReviewBtn.dataset.adminDbReview === 'withdrawal' ? 'withdrawals' : 'deposits'); return; }
+            if (reactivateBtn) {
+              const email = reactivateBtn.dataset.adminReactivate;
+              reactivateBtn.disabled = true; reactivateBtn.textContent = 'Reactivating…';
+              try {
+                const c = client(); if (!c) throw new Error('Supabase is not connected.');
+                const { error } = await c.rpc('admin_reactivate_finrise_profile', {p_email: email});
+                if (error) throw error;
+                const x = window.finriseAdminGetUserState?.(email);
+                if (x && typeof window.finriseAdminSaveUser === 'function') { x.st.isDeactivated = false; delete x.st.deactivatedAt; window.finriseAdminSaveUser(email, x.st); }
+                if (typeof window.finriseAdminRefreshUsers === 'function') await window.finriseAdminRefreshUsers();
+                refreshAdmin('users'); notify('User reactivated and moved to Active users.');
+              } catch (error) { notify('Could not reactivate user: ' + (error?.message || 'check the reactivation SQL function.'), true); reactivateBtn.disabled = false; reactivateBtn.textContent = 'Reactivate'; }
+            }
+          } catch (error) { console.error('FINRISE admin action failed:', error); notify(error?.message || 'Action failed. Please retry.', true); }
+        }, true);
+        document.addEventListener('click', function (event) {
+          const close = event.target && event.target.closest ? event.target.closest('[data-close-modal]') : null;
+          if (close) { event.preventDefault(); window.finriseAdminCloseModal?.(); }
+        }, true);
+        document.addEventListener('DOMContentLoaded', function () {
+          if (document.body.classList.contains('admin-mode')) window.finriseLoadAdminNotifications();
         });
       })();
     </script>
